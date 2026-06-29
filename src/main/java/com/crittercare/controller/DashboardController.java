@@ -34,6 +34,11 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
+import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+
+
 import java.util.List;
 
 public class DashboardController implements SimulationListener {
@@ -341,6 +346,29 @@ public class DashboardController implements SimulationListener {
         return grid;
     }
 
+    private Node buildZoneIconNode(HabitatType type) {
+    if (type == HabitatType.REPTILE_HOUSE) {
+        try {
+            Image frogImage = new Image(
+                getClass().getResourceAsStream("/com/crittercare/images/CroakingToad.gif")
+            );
+            ImageView iv = new ImageView(frogImage);
+            iv.setFitWidth(32);
+            iv.setFitHeight(32);
+            iv.setPreserveRatio(true);
+            iv.setSmooth(false); // keep pixel-art crisp, no blurring
+            return iv;
+        } catch (Exception e) {
+            // fall through to emoji if the gif can't be loaded
+        }
+    }
+    Label fallback = new Label(zoneIcon(type));
+    fallback.setStyle("-fx-font-size: 26px;");
+    return fallback;
+}
+
+
+    
     private VBox buildMapZoneCard(HabitatType type, List<Enclosure> enclosures) {
         int animalCount = enclosures.stream().mapToInt(e -> e.getAnimalIds().size()).sum();
         boolean critical = enclosures.stream().anyMatch(Enclosure::isCritical);
@@ -352,8 +380,7 @@ public class DashboardController implements SimulationListener {
         else if (warning)          { status = "● Cleaning Due"; statusColor = "#D97706"; }
         else                       { status = "● Good";         statusColor = "#16A34A"; }
 
-        Label animalLbl = new Label(zoneIcon(type));
-        animalLbl.setStyle("-fx-font-size: 26px;");
+Node animalLbl = buildZoneIconNode(type);
 
         Label nameLbl = new Label(zoneDisplayName(type));
         nameLbl.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #1A1A1A; -fx-text-alignment: CENTER;");

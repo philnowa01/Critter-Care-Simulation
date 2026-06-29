@@ -78,3 +78,93 @@ Caused by: org.h2.mvstore.MVStoreException: The file is locked: /Users/shivanshs
 	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
 	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
 	... 21 more
+2026-06-29 12:57:35.843266+02:00 database: flush
+org.h2.message.DbException: Allgemeiner Fehler: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]"
+General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]" [50000-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:407)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
+	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
+	at org.h2.mvstore.db.Store.<init>(Store.java:133)
+	at org.h2.engine.Database.<init>(Database.java:326)
+	at org.h2.engine.Engine.openSession(Engine.java:92)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:343)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:125)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:683)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:230)
+	at com.crittercare.persistence.DatabaseManager.openConnection(DatabaseManager.java:84)
+	at com.crittercare.persistence.DatabaseManager.<init>(DatabaseManager.java:31)
+	at com.crittercare.persistence.DatabaseManager.getInstance(DatabaseManager.java:42)
+	at com.crittercare.MainApp.start(MainApp.java:39)
+	at com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$9(LauncherImpl.java:839)
+	at com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
+	at com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
+	at com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
+	at com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:185)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Allgemeiner Fehler: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]"
+General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]" [50000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 30 more
+Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]
+	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
+	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
+	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
+	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
+	... 24 more
+2026-06-29 12:57:35.865652+02:00 database: flush
+org.h2.message.DbException: Allgemeiner Fehler: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]"
+General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]" [50000-224]
+	at org.h2.message.DbException.get(DbException.java:212)
+	at org.h2.message.DbException.convert(DbException.java:407)
+	at org.h2.mvstore.db.Store.lambda$new$0(Store.java:122)
+	at org.h2.mvstore.MVStore.handleException(MVStore.java:1546)
+	at org.h2.mvstore.MVStore.panic(MVStore.java:371)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:291)
+	at org.h2.mvstore.MVStore$Builder.open(MVStore.java:2035)
+	at org.h2.mvstore.db.Store.<init>(Store.java:133)
+	at org.h2.engine.Database.<init>(Database.java:326)
+	at org.h2.engine.Engine.openSession(Engine.java:92)
+	at org.h2.engine.Engine.openSession(Engine.java:222)
+	at org.h2.engine.Engine.createSession(Engine.java:201)
+	at org.h2.engine.SessionRemote.connectEmbeddedOrServer(SessionRemote.java:343)
+	at org.h2.jdbc.JdbcConnection.<init>(JdbcConnection.java:125)
+	at org.h2.Driver.connect(Driver.java:59)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:683)
+	at java.sql/java.sql.DriverManager.getConnection(DriverManager.java:230)
+	at com.crittercare.persistence.DatabaseManager.openConnection(DatabaseManager.java:84)
+	at com.crittercare.persistence.DatabaseManager.<init>(DatabaseManager.java:31)
+	at com.crittercare.persistence.DatabaseManager.getInstance(DatabaseManager.java:42)
+	at com.crittercare.MainApp.stop(MainApp.java:81)
+	at com.sun.javafx.application.LauncherImpl.lambda$launchApplication1$10(LauncherImpl.java:858)
+	at com.sun.javafx.application.PlatformImpl.lambda$runAndWait$12(PlatformImpl.java:483)
+	at com.sun.javafx.application.PlatformImpl.lambda$runLater$10(PlatformImpl.java:456)
+	at java.base/java.security.AccessController.doPrivileged(AccessController.java:400)
+	at com.sun.javafx.application.PlatformImpl.lambda$runLater$11(PlatformImpl.java:455)
+	at com.sun.glass.ui.InvokeLaterDispatcher$Future.run(InvokeLaterDispatcher.java:95)
+	at com.sun.glass.ui.win.WinApplication._runLoop(Native Method)
+	at com.sun.glass.ui.win.WinApplication.lambda$runLoop$3(WinApplication.java:185)
+	at java.base/java.lang.Thread.run(Thread.java:1583)
+Caused by: org.h2.jdbc.JdbcSQLNonTransientException: Allgemeiner Fehler: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]"
+General error: "org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]" [50000-224]
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:566)
+	at org.h2.message.DbException.getJdbcSQLException(DbException.java:489)
+	... 30 more
+Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/philn/Desktop/WS 24-25 Misc/Java_neu/Critter-Care-Simulation/data/crittercare.mv.db [2.2.224/7]
+	at org.h2.mvstore.DataUtils.newMVStoreException(DataUtils.java:996)
+	at org.h2.mvstore.SingleFileStore.lockFileChannel(SingleFileStore.java:143)
+	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:117)
+	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
+	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
+	... 24 more

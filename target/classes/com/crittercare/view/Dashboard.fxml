@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.crittercare.controller.DashboardController"
+      styleClass="view-root" spacing="16">
+    <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+    <!-- ── Row 1: Stat cards ──────────────────────────────────────── -->
+    <HBox spacing="16">
+
+        <!-- Total Animals -->
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Total Animals" styleClass="card-label"/>
+                    <Label fx:id="totalAnimalsLabel" text="—" styleClass="card-value"/>
+                    <Label fx:id="animalBreakdownLabel" text="" styleClass="card-sub"/>
+                </VBox>
+                <VBox styleClass="stat-icon-circle-green" alignment="CENTER"
+                      minWidth="52" minHeight="52" maxWidth="52" maxHeight="52">
+                    <Label text="🐾" styleClass="stat-icon stat-icon-green"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Active Enclosures -->
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Active Enclosures" styleClass="card-label"/>
+                    <Label fx:id="activeEnclosuresLabel" text="—" styleClass="card-value"/>
+                    <Label text="All systems normal" styleClass="card-sub-ok"/>
+                </VBox>
+                <VBox styleClass="stat-icon-circle-teal" alignment="CENTER"
+                      minWidth="52" minHeight="52" maxWidth="52" maxHeight="52">
+                    <Label text="⊞" styleClass="stat-icon stat-icon-teal"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Critical Alerts -->
+        <VBox styleClass="stat-card stat-card-alert" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Critical Alerts" styleClass="card-label"/>
+                    <Label fx:id="activeAlertsLabel" text="—" styleClass="card-value card-value-alert"/>
+                    <Label fx:id="criticalAlertsLabel" text="Requires immediate attention" styleClass="card-sub-danger"/>
+                </VBox>
+                <VBox styleClass="stat-icon-circle-red" alignment="CENTER"
+                      minWidth="52" minHeight="52" maxWidth="52" maxHeight="52">
+                    <Label text="⚠" styleClass="stat-icon stat-icon-red"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+        <!-- Tasks Due Today -->
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Tasks Due Today" styleClass="card-label"/>
+                    <Label fx:id="todaysLogsLabel" text="—" styleClass="card-value"/>
+                    <Label text="Care log entries" styleClass="card-sub-ok"/>
+                </VBox>
+                <VBox styleClass="stat-icon-circle-amber" alignment="CENTER"
+                      minWidth="52" minHeight="52" maxWidth="52" maxHeight="52">
+                    <Label text="📋" styleClass="stat-icon stat-icon-amber"/>
+                </VBox>
+            </HBox>
+        </VBox>
+
+    </HBox>
+
+    <!-- ── Row 2: Habitat overview + Trends ──────────────────────── -->
+    <HBox spacing="16" prefHeight="320" minHeight="270">
+
+        <!-- Habitat Overview -->
+        <VBox styleClass="panel" HBox.hgrow="ALWAYS">
+            <HBox styleClass="panel-header" alignment="CENTER_LEFT">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                <Label text="Habitat Overview" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="View Enclosures ↗" styleClass="panel-link" onAction="#goToEnclosures"/>
+            </HBox>
+            <!-- Illustrated habitat map, populated by controller -->
+            <StackPane fx:id="habitatMap" styleClass="habitat-map-pane" VBox.vgrow="ALWAYS"/>
+        </VBox>
+
+        <!-- Trends -->
+        <VBox styleClass="panel" prefWidth="320" minWidth="280">
+            <HBox styleClass="panel-header" alignment="CENTER_LEFT">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                <Label text="Trends" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label text="Live" style="-fx-text-fill: #16A34A; -fx-font-size: 11px; -fx-font-weight: bold;
+                             -fx-background-color: #D1FAE5; -fx-background-radius: 4; -fx-padding: 2 8;"/>
+            </HBox>
+
+            <VBox VBox.vgrow="ALWAYS" spacing="0">
+                <!-- Health Index -->
+                <VBox spacing="8" VBox.vgrow="ALWAYS">
+                    <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Animal Health Index" styleClass="trend-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="healthScoreLabel" text="—" styleClass="trend-score-green"/>
+                    </HBox>
+                    <ProgressBar fx:id="healthBar" progress="0.89" maxWidth="Infinity"
+                                 styleClass="trend-bar"/>
+                    <HBox>
+                        <Label text="Based on all animals this session" styleClass="trend-sublabel"/>
+                    </HBox>
+                </VBox>
+
+                <Separator/>
+
+                <!-- Cleanliness Index -->
+                <VBox spacing="8" VBox.vgrow="ALWAYS">
+                    <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                    <HBox alignment="CENTER_LEFT">
+                        <Label text="Habitat Cleanliness Index" styleClass="trend-title"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="cleanlinessScoreLabel" text="—" styleClass="trend-score-blue"/>
+                    </HBox>
+                    <ProgressBar fx:id="cleanlinessBar" progress="0.86" maxWidth="Infinity"
+                                 styleClass="trend-bar trend-bar-blue"/>
+                    <HBox>
+                        <Label text="Average across all enclosures" styleClass="trend-sublabel"/>
+                    </HBox>
+                </VBox>
+            </VBox>
+        </VBox>
+
+    </HBox>
+
+    <!-- ── Row 3: Recent logs | Attention | Enclosure Status ──────── -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+        <!-- Recent Care Logs -->
+        <VBox styleClass="panel" HBox.hgrow="ALWAYS" VBox.vgrow="ALWAYS">
+            <HBox styleClass="panel-header" alignment="CENTER_LEFT">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                <Label text="Recent Care Logs" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="View All →" styleClass="panel-link" onAction="#goToCareLogs"/>
+            </HBox>
+            <TableView fx:id="recentLogsTable" VBox.vgrow="ALWAYS" styleClass="data-table">
+                <columns>
+                    <TableColumn fx:id="logTimeCol"     text="Time"     prefWidth="90"/>
+                    <TableColumn fx:id="logActivityCol" text="Activity" prefWidth="110"/>
+                    <TableColumn fx:id="logSubjectCol"  text="Subject"  prefWidth="130"/>
+                    <TableColumn fx:id="logStatusCol"   text="Status"   prefWidth="90"/>
+                    <TableColumn fx:id="logStaffCol"    text="Staff"    prefWidth="110"/>
+                </columns>
+                <placeholder><Label text="No recent activity" styleClass="table-placeholder"/></placeholder>
+            </TableView>
+        </VBox>
+
+        <!-- Animals Requiring Attention -->
+        <VBox styleClass="panel" prefWidth="280" minWidth="250" VBox.vgrow="ALWAYS">
+            <HBox styleClass="panel-header" alignment="CENTER_LEFT">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                <Label text="Need Attention" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="attentionLabel" text="" styleClass="alert-badge"
+                       style="-fx-background-color: #FEF3C7; -fx-text-fill: #D97706;"/>
+            </HBox>
+            <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color: transparent; -fx-background: transparent;
+                               -fx-border-color: transparent;">
+                <VBox fx:id="attentionAnimalsBox" spacing="8">
+                    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+                    <Label text="Loading…" styleClass="card-label"/>
+                </VBox>
+            </ScrollPane>
+        </VBox>
+
+        <!-- Enclosure Status -->
+        <VBox styleClass="panel" prefWidth="220" minWidth="200" VBox.vgrow="ALWAYS">
+            <HBox styleClass="panel-header" alignment="CENTER_LEFT">
+                <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
+                <Label text="Enclosure Status" styleClass="panel-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="View All →" styleClass="panel-link" onAction="#goToEnclosures"/>
+            </HBox>
+
+            <VBox spacing="0" VBox.vgrow="ALWAYS">
+                <padding><Insets top="8" right="8" bottom="8" left="8"/></padding>
+
+                <!-- Normal -->
+                <HBox styleClass="enc-status-row" alignment="CENTER_LEFT" spacing="10">
+                    <padding><Insets left="4" right="4"/></padding>
+                    <Region styleClass="enc-dot-good"/>
+                    <VBox HBox.hgrow="ALWAYS" spacing="1">
+                        <Label text="Normal" styleClass="enc-status-label"/>
+                        <Label text="Operating normally" styleClass="enc-status-sub"/>
+                    </VBox>
+                    <Label fx:id="enclosureNormalLabel" text="—" styleClass="enc-status-count"/>
+                </HBox>
+
+                <!-- Attention -->
+                <HBox styleClass="enc-status-row" alignment="CENTER_LEFT" spacing="10">
+                    <padding><Insets left="4" right="4"/></padding>
+                    <Region styleClass="enc-dot-warning"/>
+                    <VBox HBox.hgrow="ALWAYS" spacing="1">
+                        <Label text="Attention" styleClass="enc-status-label"/>
+                        <Label text="Issues to monitor" styleClass="enc-status-sub"/>
+                    </VBox>
+                    <Label fx:id="enclosureAttentionLabel" text="—" styleClass="enc-status-count"/>
+                </HBox>
+
+                <!-- Critical -->
+                <HBox styleClass="enc-status-row" alignment="CENTER_LEFT" spacing="10">
+                    <padding><Insets left="4" right="4"/></padding>
+                    <Region styleClass="enc-dot-critical"/>
+                    <VBox HBox.hgrow="ALWAYS" spacing="1">
+                        <Label text="Critical" styleClass="enc-status-label"
+                               style="-fx-text-fill: #DC2626;"/>
+                        <Label text="Immediate action required" styleClass="enc-status-sub"/>
+                    </VBox>
+                    <Label fx:id="enclosureCriticalLabel" text="—" styleClass="enc-status-count"
+                           style="-fx-text-fill: #DC2626;"/>
+                </HBox>
+
+                <!-- Offline -->
+                <HBox styleClass="enc-status-row" alignment="CENTER_LEFT" spacing="10">
+                    <padding><Insets left="4" right="4"/></padding>
+                    <Region styleClass="enc-dot-offline"/>
+                    <VBox HBox.hgrow="ALWAYS" spacing="1">
+                        <Label text="Offline" styleClass="enc-status-label"
+                               style="-fx-text-fill: #6B7280;"/>
+                        <Label text="Temporarily offline" styleClass="enc-status-sub"/>
+                    </VBox>
+                    <Label fx:id="enclosureOfflineLabel" text="0" styleClass="enc-status-count"
+                           style="-fx-text-fill: #6B7280;"/>
+                </HBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- View all link -->
+                <Button text="View Enclosures →" styleClass="btn-ghost"
+                        maxWidth="Infinity" onAction="#goToEnclosures"
+                        style="-fx-margin: 8 0 0 0;"/>
+            </VBox>
+        </VBox>
+
+    </HBox>
+</VBox>

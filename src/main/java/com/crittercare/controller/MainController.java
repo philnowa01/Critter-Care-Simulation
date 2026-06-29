@@ -1,5 +1,6 @@
 package com.crittercare.controller;
 
+import com.crittercare.minigame.HabitatGame;
 import com.crittercare.model.Alert;
 import com.crittercare.service.AlertService;
 import com.crittercare.simulation.SimulationEngine;
@@ -12,6 +13,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -40,6 +42,7 @@ public class MainController implements SimulationListener {
     @FXML private Button    btnEnclosures;
     @FXML private Button    btnCareLogs;
     @FXML private Button    btnAlerts;
+    @FXML private Button    btnMiniGame;
     @FXML private Label     alertBadge;
     @FXML private Label     alertBadge2;
     @FXML private Label     pageTitle;
@@ -95,6 +98,16 @@ public class MainController implements SimulationListener {
     @FXML
     public void showAlerts() {
         navigate("Alerts", viewFactory::loadAlerts, btnAlerts);
+    }
+
+    @FXML
+    public void showMiniGame() {
+        try {
+            new HabitatGame().start(new Stage());
+        } catch (Exception e) {
+            System.err.println("[MainController] Could not launch Mini Game: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     // ── SimulationListener ────────────────────────────────────────────────────

@@ -54,7 +54,8 @@
                     </Label>
                 </StackPane>
 
-                <Button text="⚙  Settings" styleClass="nav-button" maxWidth="Infinity"/>
+                <Button fx:id="btnMiniGame" text="🎮  Mini Game" styleClass="nav-button"
+                        onAction="#showMiniGame" maxWidth="Infinity"/>
             </VBox>
 
             <Region VBox.vgrow="ALWAYS"/>

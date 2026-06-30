@@ -12,6 +12,7 @@ import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 
@@ -40,6 +41,7 @@ public class MainController implements SimulationListener {
     @FXML private Button    btnEnclosures;
     @FXML private Button    btnCareLogs;
     @FXML private Button    btnAlerts;
+    @FXML private Button    btnMiniGame;
     @FXML private Button    btnMinigame;
     @FXML private Label     alertBadge;
     @FXML private Label     alertBadge2;

@@ -6,6 +6,7 @@ import com.crittercare.controller.CareLogsController;
 import com.crittercare.controller.DashboardController;
 import com.crittercare.controller.EnclosuresController;
 import com.crittercare.controller.MainController;
+import com.crittercare.controller.MinigameController;
 import com.crittercare.service.AlertService;
 import com.crittercare.service.AnimalService;
 import com.crittercare.service.EnclosureService;
@@ -50,6 +51,7 @@ public class ViewFactory {
     private EnclosuresController enclosuresController;
     private CareLogsController   careLogsController;
     private AlertsController     alertsController;
+    private MinigameController   minigameController;
 
     // ── Cached views (lazy-loaded on first navigation) ────────────────────────
     private Parent dashboardView;
@@ -57,6 +59,7 @@ public class ViewFactory {
     private Parent enclosuresView;
     private Parent careLogsView;
     private Parent alertsView;
+    private Parent minigameView;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -150,6 +153,17 @@ public class ViewFactory {
         return alertsView;
     }
 
+    /** Returns the Minigame view, loading it on first call. */
+    public Parent loadMinigame() throws IOException {
+        if (minigameView == null) {
+            FXMLLoader loader = fxmlLoader("/com/crittercare/view/Minigame.fxml");
+            loader.setControllerFactory(this::createController);
+            minigameView       = loader.load();
+            minigameController = loader.getController();
+        }
+        return minigameView;
+    }
+
     // ── Controller getters (for testing / cross-controller wiring) ────────────
 
     public MainController       getMainController()       { return mainController; }
@@ -184,6 +198,9 @@ public class ViewFactory {
         }
         if (type == AlertsController.class) {
             return new AlertsController(alertService);
+        }
+        if (type == MinigameController.class) {
+            return new MinigameController();
         }
         throw new IllegalStateException(
                 "ViewFactory: no wiring defined for controller type " + type.getName());

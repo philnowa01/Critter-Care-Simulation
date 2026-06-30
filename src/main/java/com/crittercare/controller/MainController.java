@@ -40,6 +40,7 @@ public class MainController implements SimulationListener {
     @FXML private Button    btnEnclosures;
     @FXML private Button    btnCareLogs;
     @FXML private Button    btnAlerts;
+    @FXML private Button    btnMinigame;
     @FXML private Label     alertBadge;
     @FXML private Label     alertBadge2;
     @FXML private Label     pageTitle;
@@ -96,7 +97,10 @@ public class MainController implements SimulationListener {
     public void showAlerts() {
         navigate("Alerts", viewFactory::loadAlerts, btnAlerts);
     }
-
+    @FXML
+    public void showMinigame() {
+        navigate("Minigame", viewFactory::loadMinigame, btnMinigame);
+    }
     // ── SimulationListener ────────────────────────────────────────────────────
 
     @Override

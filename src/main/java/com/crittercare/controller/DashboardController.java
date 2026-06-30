@@ -395,6 +395,24 @@ public class DashboardController implements SimulationListener {
         }
     }        
 
+    if (type == HabitatType.FOREST) {
+        try {
+            Image frogImage = new Image(
+                getClass().getResourceAsStream("/com/crittercare/images/MonkeyShake.gif")
+            );
+            ImageView iv = new ImageView(frogImage);
+            iv.setFitWidth(32);
+            iv.setFitHeight(32);
+            iv.setPreserveRatio(true);
+            iv.setSmooth(false); // keep pixel-art crisp, no blurring
+            return iv;
+        } catch (Exception e) {
+            // fall through to emoji if the gif can't be loaded
+        }
+    }      
+
+
+
     Label fallback = new Label(zoneIcon(type));
     fallback.setStyle("-fx-font-size: 26px;");
     return fallback;

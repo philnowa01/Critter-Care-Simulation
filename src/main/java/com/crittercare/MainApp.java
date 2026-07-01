@@ -10,10 +10,13 @@ import com.crittercare.repository.EnclosureRepository;
 import com.crittercare.repository.EnclosureRepositoryImpl;
 import com.crittercare.repository.MaintenanceLogRepository;
 import com.crittercare.repository.MaintenanceLogRepositoryImpl;
+import com.crittercare.repository.ZookeeperRepository;
+import com.crittercare.repository.ZookeeperRepositoryImpl;
 import com.crittercare.service.AlertService;
 import com.crittercare.service.AnimalService;
 import com.crittercare.service.EnclosureService;
 import com.crittercare.service.MaintenanceLogService;
+import com.crittercare.service.ZookeeperService;
 import com.crittercare.simulation.SimulationEngine;
 import com.crittercare.view.ViewFactory;
 import javafx.application.Application;
@@ -36,27 +39,31 @@ public class MainApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         // 1. Database — singleton connection, then idempotent schema + seed
-        DatabaseManager dbManager = DatabaseManager.getInstance();
-        new DatabaseInitializer(dbManager).initialize();
+        DatabaseManager    dbManager    = DatabaseManager.getInstance();
+        DatabaseInitializer dbInitializer = new DatabaseInitializer(dbManager);
+        dbInitializer.initialize();
 
         // 2. Repositories (all take the shared DatabaseManager)
-        AnimalRepository         animalRepo    = new AnimalRepositoryImpl(dbManager);
-        EnclosureRepository      enclosureRepo = new EnclosureRepositoryImpl(dbManager);
-        MaintenanceLogRepository logRepo       = new MaintenanceLogRepositoryImpl(dbManager);
-        AlertRepository          alertRepo     = new AlertRepositoryImpl(dbManager);
+        AnimalRepository         animalRepo       = new AnimalRepositoryImpl(dbManager);
+        EnclosureRepository      enclosureRepo    = new EnclosureRepositoryImpl(dbManager);
+        MaintenanceLogRepository logRepo          = new MaintenanceLogRepositoryImpl(dbManager);
+        AlertRepository          alertRepo        = new AlertRepositoryImpl(dbManager);
+        ZookeeperRepository      zookeeperRepo    = new ZookeeperRepositoryImpl(dbManager);
 
         // 3. Services (constructor injection — no DI framework)
-        AlertService          alertService     = new AlertService(alertRepo, animalRepo, enclosureRepo);
-        AnimalService         animalService    = new AnimalService(animalRepo, enclosureRepo, alertService);
-        EnclosureService      enclosureService = new EnclosureService(enclosureRepo, animalRepo, alertService);
-        MaintenanceLogService logService       = new MaintenanceLogService(logRepo);
+        AlertService          alertService      = new AlertService(alertRepo, animalRepo, enclosureRepo);
+        AnimalService         animalService     = new AnimalService(animalRepo, enclosureRepo, alertService);
+        EnclosureService      enclosureService  = new EnclosureService(enclosureRepo, animalRepo, alertService);
+        MaintenanceLogService logService        = new MaintenanceLogService(logRepo);
+        ZookeeperService      zookeeperService  = new ZookeeperService(zookeeperRepo);
 
         // 4. Simulation engine
         simulationEngine = new SimulationEngine(animalService, enclosureService, alertService);
 
         // 5. ViewFactory — the DI bridge between services and JavaFX controllers
         ViewFactory viewFactory = new ViewFactory(
-                animalService, enclosureService, logService, alertService, simulationEngine);
+                animalService, enclosureService, logService, alertService,
+                simulationEngine, zookeeperService, dbInitializer);
 
         // 6. Build scene
         Scene scene = new Scene(viewFactory.loadMainView(), 1280, 800);
@@ -76,7 +83,7 @@ public class MainApp extends Application {
     @Override
     public void stop() {
         if (simulationEngine != null) {
-            simulationEngine.stop();
+            simulationEngine.shutdown();
         }
         DatabaseManager.getInstance().closeConnection();
     }

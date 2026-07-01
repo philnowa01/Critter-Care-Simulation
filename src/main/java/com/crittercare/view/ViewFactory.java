@@ -7,10 +7,12 @@ import com.crittercare.controller.DashboardController;
 import com.crittercare.controller.EnclosuresController;
 import com.crittercare.controller.MainController;
 import com.crittercare.controller.MinigameController;
+import com.crittercare.persistence.DatabaseInitializer;
 import com.crittercare.service.AlertService;
 import com.crittercare.service.AnimalService;
 import com.crittercare.service.EnclosureService;
 import com.crittercare.service.MaintenanceLogService;
+import com.crittercare.service.ZookeeperService;
 import com.crittercare.simulation.SimulationEngine;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -43,6 +45,8 @@ public class ViewFactory {
     private final MaintenanceLogService  logService;
     private final AlertService           alertService;
     private final SimulationEngine       simulationEngine;
+    private final ZookeeperService       zookeeperService;
+    private final DatabaseInitializer    dbInitializer;
 
     // ── Cached controllers ────────────────────────────────────────────────────
     private MainController       mainController;
@@ -67,12 +71,16 @@ public class ViewFactory {
                        EnclosureService enclosureService,
                        MaintenanceLogService logService,
                        AlertService alertService,
-                       SimulationEngine simulationEngine) {
+                       SimulationEngine simulationEngine,
+                       ZookeeperService zookeeperService,
+                       DatabaseInitializer dbInitializer) {
         this.animalService    = animalService;
         this.enclosureService = enclosureService;
         this.logService       = logService;
         this.alertService     = alertService;
         this.simulationEngine = simulationEngine;
+        this.zookeeperService = zookeeperService;
+        this.dbInitializer    = dbInitializer;
     }
 
     // ── Main shell ────────────────────────────────────────────────────────────
@@ -181,7 +189,8 @@ public class ViewFactory {
      */
     private Object createController(Class<?> type) {
         if (type == MainController.class) {
-            return new MainController(this, simulationEngine, alertService);
+            return new MainController(
+                    this, simulationEngine, alertService, zookeeperService, dbInitializer);
         }
         if (type == DashboardController.class) {
             return new DashboardController(

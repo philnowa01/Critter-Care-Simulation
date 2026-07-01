@@ -104,15 +104,44 @@ public class SimulationEngine {
     }
 
     /**
-     * Stops the simulation gracefully.  Waits up to 5 seconds for the
-     * current tick to finish before forcing shutdown.
+     * Pauses the simulation (cancels the scheduled future but keeps the
+     * executor alive so {@link #start()} or {@link #restart()} can resume).
      */
     public void stop() {
         if (!running) return;
         running = false;
         if (tickFuture != null) {
-            tickFuture.cancel(false);  // let current tick finish
+            tickFuture.cancel(false);
+            tickFuture = null;
         }
+        System.out.println("[SimEngine] Paused after tick #" + tickNumber + ".");
+    }
+
+    /**
+     * Stops the engine and resets the tick counter, then immediately
+     * starts a fresh schedule.  Used when switching the active zookeeper.
+     */
+    public void restart() {
+        if (running) {
+            running = false;
+            if (tickFuture != null) {
+                tickFuture.cancel(false);
+                tickFuture = null;
+            }
+        }
+        tickNumber = 0;
+        running    = true;
+        tickFuture = scheduler.scheduleAtFixedRate(
+                this::runTick, 0, TICK_INTERVAL_SECONDS, TimeUnit.SECONDS);
+        System.out.println("[SimEngine] Restarted.");
+    }
+
+    /**
+     * Permanently terminates the executor.  Call once from
+     * {@code MainApp.stop()} — do not call during normal navigation.
+     */
+    public void shutdown() {
+        stop();
         scheduler.shutdown();
         try {
             if (!scheduler.awaitTermination(5, TimeUnit.SECONDS)) {
@@ -122,7 +151,7 @@ public class SimulationEngine {
             scheduler.shutdownNow();
             Thread.currentThread().interrupt();
         }
-        System.out.println("[SimEngine] Stopped after tick #" + tickNumber + ".");
+        System.out.println("[SimEngine] Shut down after tick #" + tickNumber + ".");
     }
 
     public boolean isRunning() { return running; }

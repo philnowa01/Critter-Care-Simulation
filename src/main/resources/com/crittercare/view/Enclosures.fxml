@@ -54,7 +54,7 @@
         </VBox>
 
         <!-- Cleaning Due -->
-        <VBox styleClass="stat-card stat-card-warning" HBox.hgrow="ALWAYS">
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="4" HBox.hgrow="ALWAYS">
@@ -70,7 +70,7 @@
         </VBox>
 
         <!-- Critical Issues -->
-        <VBox styleClass="stat-card stat-card-alert" HBox.hgrow="ALWAYS">
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
             <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
             <HBox alignment="CENTER_LEFT" spacing="16">
                 <VBox spacing="4" HBox.hgrow="ALWAYS">

@@ -110,7 +110,15 @@ public class DatabaseInitializer {
                 )
                 """);
 
-            // 4. Alerts (no FK deps)
+            // 4. Zookeepers (no FK deps)
+            stmt.execute("""
+                CREATE TABLE IF NOT EXISTS zookeepers (
+                    id   INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL
+                )
+                """);
+
+            // 5. Alerts (no FK deps)
             stmt.execute("""
                 CREATE TABLE IF NOT EXISTS alerts (
                     id                   INT AUTO_INCREMENT PRIMARY KEY,
@@ -145,8 +153,8 @@ public class DatabaseInitializer {
         }
     }
 
-    // Resets all volatile simulation stats to starting values on every launch
-    private void resetSimulationStats() {
+    // Resets all volatile simulation stats to starting values (also called on zookeeper switch)
+    public void resetSimulationStats() {
         Connection conn = dbManager.getConnection();
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(
@@ -223,6 +231,14 @@ public class DatabaseInitializer {
                    6, 'Jordan Lee',    '2022-06-18', NULL, NULL, NULL, NULL, FALSE, 6.0),
                   ('Spike',  'Komodo Dragon',    'REPTILE',12, 88.0, 50.0, 70.0, 60.0,
                    6, 'Alex Morgan',   '2013-03-11', NULL, NULL, NULL, NULL, TRUE,  7.0)
+                """);
+
+            // ── Zookeepers ────────────────────────────────────────────────
+            stmt.execute("""
+                INSERT INTO zookeepers (name) VALUES
+                  ('Alex Morgan'),
+                  ('Jordan Lee'),
+                  ('Sam Patel')
                 """);
 
             // ── Maintenance Logs ──────────────────────────────────────────

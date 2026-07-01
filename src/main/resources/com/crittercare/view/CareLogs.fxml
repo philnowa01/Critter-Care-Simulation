@@ -56,7 +56,7 @@
             </HBox>
         </VBox>
 
-        <VBox styleClass="stat-card-sm stat-card-alert" HBox.hgrow="ALWAYS">
+        <VBox styleClass="stat-card-sm" HBox.hgrow="ALWAYS">
             <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
             <HBox alignment="CENTER_LEFT" spacing="12">
                 <VBox spacing="3" HBox.hgrow="ALWAYS">

@@ -54,7 +54,6 @@
                     </Label>
                 </StackPane>
 
-                <!-- <Button text="⚙  Settings" styleClass="nav-button" maxWidth="Infinity"/> -->
                 <Button fx:id="btnMinigame" text="🎮  Minigame"
                         styleClass="nav-button" onAction="#showMinigame"
                         maxWidth="Infinity"/>
@@ -75,14 +74,18 @@
 
             <Separator styleClass="sidebar-sep"/>
 
-            <!-- User profile -->
-            <HBox styleClass="user-profile-area" alignment="CENTER_LEFT" spacing="10">
-                <Label text="AM" styleClass="user-avatar"/>
+            <!-- User profile / zookeeper switcher -->
+            <HBox fx:id="userProfileArea" styleClass="user-profile-area"
+                  alignment="CENTER_LEFT" spacing="10"
+                  onMouseClicked="#toggleZookeeperMenu"
+                  style="-fx-cursor: hand;">
+                <Label fx:id="userAvatar" text="AM" styleClass="user-avatar"/>
                 <VBox spacing="1" HBox.hgrow="ALWAYS">
-                    <Label text="Alex Morgan" styleClass="user-name"/>
-                    <Label text="Zookeeper"   styleClass="user-role"/>
+                    <Label fx:id="userNameLabel" text="Alex Morgan" styleClass="user-name"/>
+                    <Label text="Zookeeper" styleClass="user-role"/>
                 </VBox>
-                <Label text="▾" style="-fx-text-fill: rgba(255,255,255,0.4); -fx-font-size: 13px;"/>
+                <Label text="▲"
+                       style="-fx-text-fill: rgba(255,255,255,0.70); -fx-font-size: 17px;"/>
             </HBox>
 
         </VBox>

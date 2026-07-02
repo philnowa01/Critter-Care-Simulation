@@ -7,11 +7,13 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Represents a physical habitat zone in the zoo.
- *
- * Enclosure tracks its own cleanliness over time via tick().
- * The list of animal IDs is kept here to support occupancy and
- * compatibility checks without needing Animal objects in memory.
+ * Represents a physical habitat zone within the zoo infrastructure.
+ * <p>
+ * The enclosure manages its own environmental state, specifically hygiene levels,
+ * which degrade over time based on the current animal occupancy. It maintains a
+ * lightweight collection of animal identifiers to facilitate capacity management
+ * without requiring full entity graphs in memory.
+ * </p>
  */
 public class Enclosure {
 
@@ -22,8 +24,6 @@ public class Enclosure {
     // Cleanliness decay rate per simulated hour, per animal
     private static final double DECAY_RATE_PER_ANIMAL_HOUR    = 1.2;
 
-    // ── Fields ───────────────────────────────────────────────────────────────
-
     private int           id;
     private String        name;
     private HabitatType   habitatType;
@@ -33,8 +33,10 @@ public class Enclosure {
     private LocalDateTime lastCleaned;
     private String        maintenanceSchedule;
 
-    // ── Constructors ─────────────────────────────────────────────────────────
-
+    /**
+     * Default constructor required for framework instantiation.
+     * Initializes the enclosure to a pristine state with default capacity.
+     */
     public Enclosure() {
         this.cleanliness         = 100.0;
         this.capacity            = 10;
@@ -43,6 +45,13 @@ public class Enclosure {
         this.maintenanceSchedule = "Daily";
     }
 
+    /**
+     * Constructs a new enclosure with the specified core attributes.
+     *
+     * @param name        the human-readable name of the enclosure
+     * @param habitatType the specific biotope or environment type
+     * @param capacity    the maximum number of animals the enclosure can safely hold
+     */
     public Enclosure(String name, HabitatType habitatType, int capacity) {
         this();
         this.name        = name;
@@ -53,10 +62,13 @@ public class Enclosure {
     // ── Simulation tick ──────────────────────────────────────────────────────
 
     /**
-     * Decreases cleanliness based on occupancy and elapsed simulated hours.
-     * More animals → faster degradation.
+     * Advances the enclosure's simulation state by degrading cleanliness.
+     * <p>
+     * The degradation rate scales dynamically with the current occupancy of the
+     * enclosure and includes a minor randomized variance to simulate real-world conditions.
+     * </p>
      *
-     * @param deltaHours simulated hours elapsed since last tick
+     * @param deltaHours the simulated time elapsed since the last tick, in hours
      */
     public void tick(double deltaHours) {
         int occupancy    = animalIds.size();
@@ -65,26 +77,38 @@ public class Enclosure {
         cleanliness      = Math.max(0.0, cleanliness - decayRate * deltaHours);
     }
 
-    // ── Business logic ───────────────────────────────────────────────────────
-
-    /** Returns true if the enclosure has reached its animal capacity. */
+    /**
+     * Evaluates whether the enclosure has reached its maximum animal capacity.
+     *
+     * @return {@code true} if the enclosure is at or beyond capacity, otherwise {@code false}
+     */
     public boolean isFull() {
         return animalIds.size() >= capacity;
     }
 
-    /** Returns true if cleanliness is below the warning threshold. */
+    /**
+     * Evaluates whether the enclosure's cleanliness has dropped below the warning threshold.
+     *
+     * @return {@code true} if cleaning is recommended, otherwise {@code false}
+     */
     public boolean isCleaningDue() {
         return cleanliness < CLEANLINESS_WARNING_THRESHOLD;
     }
 
-    /** Returns true if cleanliness is critically low. */
+    /**
+     * Evaluates whether the enclosure's cleanliness has dropped to a critical level.
+     *
+     * @return {@code true} if cleaning is urgently required, otherwise {@code false}
+     */
     public boolean isCritical() {
         return cleanliness < CLEANLINESS_CRITICAL_THRESHOLD;
     }
 
     /**
-     * Adds an animal to this enclosure.
-     * @return false if the enclosure is already full
+     * Registers an animal within this enclosure if capacity permits.
+     *
+     * @param animalId the unique identifier of the animal
+     * @return {@code true} if the animal was successfully added, {@code false} if the enclosure is full
      */
     public boolean addAnimal(int animalId) {
         if (isFull()) {
@@ -94,23 +118,38 @@ public class Enclosure {
         return true;
     }
 
-    /** Removes an animal from this enclosure. */
+    /**
+     * Removes a specific animal from this enclosure.
+     *
+     * @param animalId the unique identifier of the animal to remove
+     * @return {@code true} if the animal was present and removed, otherwise {@code false}
+     */
     public boolean removeAnimal(int animalId) {
         return animalIds.remove(Integer.valueOf(animalId));
     }
 
-    /** Returns the number of animals currently in this enclosure. */
+    /**
+     * Retrieves the current number of animals housed in the enclosure.
+     *
+     * @return the current occupancy count
+     */
     public int getOccupancy() {
         return animalIds.size();
     }
 
-    /** Resets cleanliness to 100 and records the current time as lastCleaned. */
+    /**
+     * Restores the enclosure's cleanliness to optimal levels and updates the maintenance timestamp.
+     */
     public void clean() {
         this.cleanliness = 100.0;
         this.lastCleaned = LocalDateTime.now();
     }
 
-    /** Returns a human-readable status string for the UI. */
+    /**
+     * Determines the current human-readable status of the enclosure for presentation layers.
+     *
+     * @return a status string corresponding to the current cleanliness state
+     */
     public String getStatus() {
         if (isCritical())     return "Critical";
         if (isCleaningDue())  return "Cleaning Due";
@@ -126,27 +165,71 @@ public class Enclosure {
 
     // ── Getters & Setters ────────────────────────────────────────────────────
 
-    public int getId()                          { return id; }
-    public void setId(int id)                   { this.id = id; }
+    public int getId() {
+        return id;
+    }
+    public void setId(int id) {
+        this.id = id;
+    }
 
-    public String getName()                     { return name; }
-    public void setName(String name)            { this.name = name; }
+    public String getName() {
+        return name;
+    }
+    public void setName(String name) {
+        this.name = name; }
 
-    public HabitatType getHabitatType()                         { return habitatType; }
-    public void setHabitatType(HabitatType habitatType)         { this.habitatType = habitatType; }
+    public HabitatType getHabitatType() { return habitatType;
+    }
+    public void setHabitatType(HabitatType habitatType) { this.habitatType = habitatType;
+    }
 
-    public double getCleanliness()                              { return cleanliness; }
-    public void setCleanliness(double cleanliness)              { this.cleanliness = Math.max(0.0, Math.min(100.0, cleanliness)); }
+    public double getCleanliness() {
+        return cleanliness;
+    }
 
-    public int getCapacity()                    { return capacity; }
-    public void setCapacity(int capacity)       { this.capacity = capacity; }
+    /**
+     * Sets the cleanliness level, ensuring it remains within the permissible boundaries.
+     *
+     * @param cleanliness the requested cleanliness level
+     */
+    public void setCleanliness(double cleanliness) { this.cleanliness = Math.max(0.0, Math.min(100.0, cleanliness)); }
 
-    public List<Integer> getAnimalIds()         { return Collections.unmodifiableList(animalIds); }
-    public void setAnimalIds(List<Integer> ids) { this.animalIds = new ArrayList<>(ids); }
+    public int getCapacity() {
+        return capacity;
+    }
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
+    }
 
-    public LocalDateTime getLastCleaned()                       { return lastCleaned; }
-    public void setLastCleaned(LocalDateTime lastCleaned)       { this.lastCleaned = lastCleaned; }
+    /**
+     * Retrieves an unmodifiable view of the current animal identifiers.
+     *
+     * @return an unmodifiable list of animal IDs
+     */
+    public List<Integer> getAnimalIds() {
+        return Collections.unmodifiableList(animalIds);
+    }
 
-    public String getMaintenanceSchedule()                      { return maintenanceSchedule; }
-    public void setMaintenanceSchedule(String schedule)         { this.maintenanceSchedule = schedule; }
+    /**
+     * Replaces the current list of animal identifiers with the provided collection.
+     *
+     * @param ids the new collection of animal identifiers
+     */
+    public void setAnimalIds(List<Integer> ids) {
+        this.animalIds = new ArrayList<>(ids);
+    }
+
+    public LocalDateTime getLastCleaned() {
+        return lastCleaned;
+    }
+    public void setLastCleaned(LocalDateTime lastCleaned) {
+        this.lastCleaned = lastCleaned;
+    }
+
+    public String getMaintenanceSchedule() {
+        return maintenanceSchedule;
+    }
+    public void setMaintenanceSchedule(String schedule) {
+        this.maintenanceSchedule = schedule;
+    }
 }

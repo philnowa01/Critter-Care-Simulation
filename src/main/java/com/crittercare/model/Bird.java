@@ -1,37 +1,53 @@
 package com.crittercare.model;
 
 /**
- * Warm-blooded, feathered animal.
- *
- * Birds have the highest hunger rate of all three subtypes — their fast
- * wingbeat metabolism demands constant caloric intake.
- *
- * Subtype-specific DB columns: wingspan_cm, can_fly
+ * Represents an avian entity within the CritterCare simulation.
+ * <p>
+ * Birds are characterized by a highly active metabolism, resulting in the
+ * highest caloric demand among all animal classifications. Their rapid
+ * hunger and hydration depletion requires careful monitoring by staff.
+ * </p>
  */
 public class Bird extends Animal {
 
     private double  wingspanCm;
     private boolean canFly;
 
-    // ── Constructors ─────────────────────────────────────────────────────────
-
+    /**
+     * Default constructor required for framework instantiation.
+     * Assumes standard flight capabilities by default.
+     */
     public Bird() {
         super();
         this.canFly = true;
     }
 
+    /**
+     * Constructs a new bird with core identity attributes.
+     *
+     * @param name    the given name of the bird
+     * @param species the species designation
+     * @param age     the age in years
+     */
     public Bird(String name, String species, int age) {
         super(name, species, age);
         this.canFly = true;
     }
 
+    /**
+     * Constructs a fully initialized bird with specific physiological traits.
+     *
+     * @param name       the given name of the bird
+     * @param species    the species designation
+     * @param age        the age in years
+     * @param wingspanCm the wingspan measured in centimeters
+     * @param canFly     indicates whether the bird is capable of sustained flight
+     */
     public Bird(String name, String species, int age, double wingspanCm, boolean canFly) {
         super(name, species, age);
         this.wingspanCm = wingspanCm;
         this.canFly     = canFly;
     }
-
-    // ── Template Method hooks ────────────────────────────────────────────────
 
     @Override
     protected double getHungerRate() {
@@ -49,13 +65,17 @@ public class Bird extends Animal {
         return 2.5;
     }
 
-    // ── Abstract method implementations ──────────────────────────────────────
-
     @Override
     public String getType() {
         return "BIRD";
     }
 
+    /**
+     * Generates a sound specific to the bird's species.
+     * Uses pattern matching to return the appropriate vocalization.
+     *
+     * @return a short sound description
+     */
     @Override
     public String makeSound() {
         return switch (getSpecies()) {
@@ -66,7 +86,7 @@ public class Bird extends Animal {
         };
     }
 
-    // ── Getters & Setters ────────────────────────────────────────────────────
+    // Getters and Setters
 
     public double getWingspanCm()                   { return wingspanCm; }
     public void setWingspanCm(double wingspanCm)    { this.wingspanCm = wingspanCm; }

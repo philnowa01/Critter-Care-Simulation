@@ -16,26 +16,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 /**
- * Generates, stores, and manages system alerts.
- *
- * Alert thresholds (all values are percentages or matching enums):
- *
- *   Animal health    ≤ 30%  → CRITICAL  (LOW_HEALTH)
- *   Animal health    ≤ 60%  → HIGH      (LOW_HEALTH)
- *   Animal hunger    ≥ 75%  → CRITICAL  (CRITICAL_HUNGER)
- *   Animal hunger    ≥ 60%  → HIGH      (CRITICAL_HUNGER)
- *   Enclosure clean  ≤ 40%  → CRITICAL  (DIRTY_ENCLOSURE)
- *   Enclosure clean  ≤ 70%  → WARNING   (DIRTY_ENCLOSURE)
- *   Enclosure full          → WARNING   (OVERCROWDED)
- *
- * Deduplication: before saving a new alert, we check whether an
- * unresolved alert of the same (type, sourceId) already exists in
- * the database.  This prevents the simulation from flooding the table
- * with duplicate entries on every tick.
+ * Orchestrates the generation, storage, and lifecycle management of system alerts.
+ * <p>
+ * This service continually evaluates the state of domain entities (animals and enclosures)
+ * against predefined operational thresholds. It ensures data integrity and limits noise
+ * by applying deduplication strategies, preventing the persistence layer from being flooded
+ * with duplicate active alerts during continuous simulation cycles.
+ * </p>
  */
 public class AlertService {
-
-    // ── Thresholds ────────────────────────────────────────────────────────────
 
     private static final double HEALTH_CRITICAL_THRESHOLD    = 30.0;
     private static final double HEALTH_HIGH_THRESHOLD        = 60.0;
@@ -44,13 +33,18 @@ public class AlertService {
     private static final double CLEAN_CRITICAL_THRESHOLD     = 40.0;
     private static final double CLEAN_WARNING_THRESHOLD      = 70.0;
 
-    // ── Dependencies ─────────────────────────────────────────────────────────
-
     private final AlertRepository     alertRepo;
     private final AnimalRepository    animalRepo;
     private final EnclosureRepository enclosureRepo;
     private final CopyOnWriteArrayList<Runnable> changeListeners = new CopyOnWriteArrayList<>();
 
+    /**
+     * Constructs a new AlertService with the required data access components.
+     *
+     * @param alertRepo     the repository for alert persistence
+     * @param animalRepo    the repository for animal state retrieval
+     * @param enclosureRepo the repository for enclosure state retrieval
+     */
     public AlertService(AlertRepository alertRepo,
                         AnimalRepository animalRepo,
                         EnclosureRepository enclosureRepo) {
@@ -59,43 +53,60 @@ public class AlertService {
         this.enclosureRepo = enclosureRepo;
     }
 
-    // ── Queries ──────────────────────────────────────────────────────────────
-
-    /** Returns all alerts (resolved and unresolved), most recent first. */
+    /**
+     * Retrieves a comprehensive list of all alerts, including resolved entries.
+     *
+     * @return a list of all alerts, ordered with the most recent first
+     */
     public List<Alert> getAllAlerts() {
         return alertRepo.findAll();
     }
 
-    /** Returns only unresolved alerts. */
+    /**
+     * Retrieves all alerts that are currently in an active, unresolved state.
+     *
+     * @return a list of active alerts
+     */
     public List<Alert> getActiveAlerts() {
         return alertRepo.findActive();
     }
 
-    /** Returns only unresolved CRITICAL alerts. */
+    /**
+     * Retrieves all active alerts specifically classified with critical severity.
+     *
+     * @return a list of active, critical alerts
+     */
     public List<Alert> getCriticalAlerts() {
         return alertRepo.findActive().stream()
                 .filter(a -> a.getSeverity() == AlertSeverity.CRITICAL)
                 .toList();
     }
 
-    /** Returns the count of unresolved alerts. */
+    /**
+     * Calculates the total number of unresolved alerts across the system.
+     *
+     * @return the count of active alerts
+     */
     public long getActiveAlertCount() {
         return alertRepo.findActive().size();
     }
 
-    /** Returns the count of unresolved CRITICAL alerts. */
+    /**
+     * Calculates the total number of unresolved alerts classified with critical severity.
+     *
+     * @return the count of active, critical alerts
+     */
     public long getCriticalAlertCount() {
         return alertRepo.findActive().stream()
                 .filter(a -> a.getSeverity() == AlertSeverity.CRITICAL)
                 .count();
     }
 
-    // ── Alert lifecycle ───────────────────────────────────────────────────────
-
     /**
-     * Marks an alert as resolved and persists the change.
+     * Transitions a specified alert to a resolved state and synchronizes with the datastore.
      *
-     * @throws IllegalStateException if the alert does not exist
+     * @param alertId the unique identifier of the target alert
+     * @throws IllegalStateException if the specified alert identifier cannot be found
      */
     public void resolveAlert(int alertId) {
         Alert alert = alertRepo.findById(alertId)
@@ -107,9 +118,10 @@ public class AlertService {
     }
 
     /**
-     * Acknowledges an alert (New → Acknowledged) and persists the change.
+     * Acknowledges an active alert, updating its status to indicate staff awareness.
      *
-     * @throws IllegalStateException if the alert does not exist
+     * @param alertId the unique identifier of the target alert
+     * @throws IllegalStateException if the specified alert identifier cannot be found
      */
     public void acknowledgeAlert(int alertId) {
         Alert alert = alertRepo.findById(alertId)
@@ -119,26 +131,42 @@ public class AlertService {
         alertRepo.update(alert);
         notifyChangeListeners();
     }
-    
+
     /**
-     * Listener registration for UI components to refresh when alerts change.
+     * Registers a listener to be notified upon any state changes within the alert lifecycle.
+     *
+     * @param r the {@link Runnable} callback to execute upon changes
      */
     public void addChangeListener(Runnable r) {
         if (r != null) changeListeners.addIfAbsent(r);
     }
 
+    /**
+     * Unregisters a previously registered state change listener.
+     *
+     * @param r the {@link Runnable} callback to remove
+     */
     public void removeChangeListener(Runnable r) {
         changeListeners.remove(r);
     }
 
+    /**
+     * Triggers the execution of all registered state change listeners.
+     */
     private void notifyChangeListeners() {
         for (Runnable r : changeListeners) {
-            try { r.run(); } catch (Exception ignored) {}
+            try { r.run();
+            } catch (Exception ignored) {
+
+            }
         }
     }
+
     /**
-     * Resolves any active alerts for the given animal when the underlying
-     * condition is no longer present.
+     * Evaluates and resolves any active alerts associated with a specific animal if the
+     * underlying conditions that triggered the alerts have normalized.
+     *
+     * @param animalId the unique identifier of the animal entity
      */
     public void resolveAlertsForAnimal(int animalId) {
         if (animalId <= 0) {
@@ -160,8 +188,10 @@ public class AlertService {
     }
 
     /**
-     * Resolves any active alerts for the given enclosure when the underlying
-     * condition is no longer present.
+     * Evaluates and resolves any active alerts associated with a specific enclosure if the
+     * underlying conditions that triggered the alerts have normalized.
+     *
+     * @param enclosureId the unique identifier of the enclosure entity
      */
     public void resolveAlertsForEnclosure(int enclosureId) {
         if (enclosureId <= 0) {
@@ -181,16 +211,16 @@ public class AlertService {
             if (changed[0]) notifyChangeListeners();
         });
     }
-    // ── Simulation integration ────────────────────────────────────────────────
 
     /**
-     * Called by SimulationEngine on every tick.
+     * Executes the primary evaluation cycle, scanning all entities for threshold breaches.
+     * <p>
+     * New alerts are generated for identified breaches, ensuring that duplicate alerts
+     * are suppressed if an unresolved alert for the same condition and entity already exists.
+     * Inactive alerts are automatically resolved.
+     * </p>
      *
-     * Scans all animals and enclosures for threshold breaches and
-     * generates new alerts.  Existing unresolved alerts for the same
-     * (type, sourceId) are skipped to avoid duplicates.
-     *
-     * @return list of newly created Alert objects (may be empty)
+     * @return a list of newly generated alert entities, potentially empty
      */
     public List<Alert> checkAndGenerateAlerts() {
         autoResolveInactiveAlerts();
@@ -224,6 +254,9 @@ public class AlertService {
         return newAlerts;
     }
 
+    /**
+     * Identifies and resolves alerts where the triggering conditions are no longer present.
+     */
     private void autoResolveInactiveAlerts() {
         boolean changed = false;
         for (Alert alert : alertRepo.findActive()) {
@@ -236,6 +269,12 @@ public class AlertService {
         if (changed) notifyChangeListeners();
     }
 
+    /**
+     * Injects randomized alert events into the system to simulate unpredictable occurrences.
+     *
+     * @param existingKeys the set of currently active alert deduplication keys
+     * @return a list of generated random alerts
+     */
     private List<Alert> generateRandomAlerts(Set<String> existingKeys) {
         List<Alert> rand = new ArrayList<>();
         double perEntityChance = 0.03; // 3% chance per entity per tick
@@ -271,6 +310,12 @@ public class AlertService {
         return rand;
     }
 
+    /**
+     * Determines if a specific alert should remain active based on its source entity's current state.
+     *
+     * @param alert the alert to evaluate
+     * @return {@code true} if the alert remains valid, otherwise {@code false}
+     */
     private boolean isAlertStillActive(Alert alert) {
         if (alert == null || alert.getType() == null || alert.getSourceId() == null) {
             return true;
@@ -294,6 +339,14 @@ public class AlertService {
         return true;
     }
 
+    /**
+     * Evaluates the viability of an alert against explicit entity references.
+     *
+     * @param alert     the alert to evaluate
+     * @param animal    the associated animal, if applicable
+     * @param enclosure the associated enclosure, if applicable
+     * @return {@code true} if the threshold breach is still occurring, otherwise {@code false}
+     */
     private boolean isAlertStillActive(Alert alert, Animal animal,
                                        Enclosure enclosure) {
         return switch (alert.getType()) {
@@ -306,6 +359,12 @@ public class AlertService {
         };
     }
 
+    /**
+     * Extracts the numeric identifier from a formatted source string.
+     *
+     * @param sourceId the formatted string identifier (e.g., "ANM-5")
+     * @return the extracted integer, or -1 if parsing fails
+     */
     private int parseSourceId(String sourceId) {
         try {
             return Integer.parseInt(sourceId.split("-")[1]);
@@ -314,8 +373,13 @@ public class AlertService {
         }
     }
 
-    // ── Private: per-animal checks ────────────────────────────────────────────
-
+    /**
+     * Evaluates a specific animal entity against operational thresholds and generates requisite alerts.
+     *
+     * @param animal       the animal entity to analyze
+     * @param existingKeys the set of currently active alert keys for deduplication
+     * @return a list of newly generated alerts for the animal
+     */
     private List<Alert> checkAnimalAlerts(Animal animal, Set<String> existingKeys) {
         List<Alert> alerts = new ArrayList<>();
         String sourceId   = "ANM-" + animal.getId();
@@ -370,8 +434,13 @@ public class AlertService {
         return alerts;
     }
 
-    // ── Private: per-enclosure checks ─────────────────────────────────────────
-
+    /**
+     * Evaluates a specific enclosure entity against operational thresholds and generates requisite alerts.
+     *
+     * @param enclosure    the enclosure entity to analyze
+     * @param existingKeys the set of currently active alert keys for deduplication
+     * @return a list of newly generated alerts for the enclosure
+     */
     private List<Alert> checkEnclosureAlerts(Enclosure enclosure,
                                              Set<String> existingKeys) {
         List<Alert> alerts = new ArrayList<>();

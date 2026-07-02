@@ -6,27 +6,34 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
- * Creates all tables (if they do not exist) and inserts seed data on a
- * fresh database.  Called once during application startup before any
- * repository is used.
- *
- * Design note: DDL is embedded here (not read from schema.sql) so the
- * class is self-contained and works in a fat-jar without resource loading.
- * The schema.sql file in resources is kept as a human-readable reference.
+ * Initializes the database schema and populates it with foundational seed data.
+ * <p>
+ * This component executes during the application startup phase to ensure the required
+ * relational schema is present. If an empty database is detected, it automatically
+ * provisions sample records. It also guarantees a consistent simulation baseline
+ * by resetting volatile entity statistics upon each execution.
+ * </p>
  */
 public class DatabaseInitializer {
 
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new database initializer with the required database manager.
+     *
+     * @param dbManager the manager providing active database connections
+     */
     public DatabaseInitializer(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    // ── Entry point ──────────────────────────────────────────────────────────
-
     /**
-     * Run this once at application startup.
-     * Safe to call multiple times – all statements use IF NOT EXISTS.
+     * Executes the initialization routine for the database schema and state.
+     * <p>
+     * This method is idempotent regarding schema creation. It evaluates the current
+     * state of the database to determine if seed data insertion is necessary, and
+     * systematically resets volatile statistics.
+     * </p>
      */
     public void initialize() {
         System.out.println("[DB] Initializing schema...");
@@ -43,8 +50,9 @@ public class DatabaseInitializer {
         resetSimulationStats();
     }
 
-    // ── DDL ──────────────────────────────────────────────────────────────────
-
+    /**
+     * Executes the Data Definition Language (DDL) statements required to build the schema.
+     */
     private void createTables() {
         Connection conn = dbManager.getConnection();
         try (Statement stmt = conn.createStatement()) {
@@ -138,11 +146,10 @@ public class DatabaseInitializer {
         }
     }
 
-    // ── Seed data ────────────────────────────────────────────────────────────
-
     /**
-     * Checks whether the enclosures table has any rows.
-     * If not, the whole DB is considered empty.
+     * Determines whether the database is unpopulated by verifying the presence of enclosure records.
+     *
+     * @return {@code true} if the database contains no records, otherwise {@code false}
      */
     private boolean isDatabaseEmpty() {
         try (Statement stmt = dbManager.getConnection().createStatement();
@@ -153,7 +160,13 @@ public class DatabaseInitializer {
         }
     }
 
-    // Resets all volatile simulation stats to starting values (also called on zookeeper switch)
+    /**
+     * Restores all volatile simulation parameters to their default starting configuration.
+     * <p>
+     * This ensures that subsequent application executions begin with optimal animal
+     * health and pristine enclosure conditions, discarding historical alert states.
+     * </p>
+     */
     public void resetSimulationStats() {
         Connection conn = dbManager.getConnection();
         try (Statement stmt = conn.createStatement()) {
@@ -168,6 +181,9 @@ public class DatabaseInitializer {
         }
     }
 
+    /**
+     * Populates the underlying database tables with initial system data.
+     */
     private void seedData() {
         Connection conn = dbManager.getConnection();
         try (Statement stmt = conn.createStatement()) {

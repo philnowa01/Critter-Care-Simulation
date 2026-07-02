@@ -5,15 +5,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 /**
- * Singleton that owns the application's single H2 JDBC connection.
- *
- * Using a singleton here is appropriate because:
- *  - H2 in embedded mode supports only one JVM connection at a time.
- *  - All DB access happens on one thread (JavaFX Application Thread or
- *    the simulation executor, which serializes its own writes).
- *
- * Call getInstance().getConnection() from any repository.
- * Call closeConnection() once in MainApp.stop().
+ * Manages the application's primary database connection lifecycle.
+ * <p>
+ * Implements a thread-safe singleton pattern to maintain a single active
+ * JDBC connection to the underlying embedded H2 database, ensuring centralized
+ * and consistent data access across all repositories.
+ * </p>
  */
 public class DatabaseManager {
 
@@ -25,17 +22,18 @@ public class DatabaseManager {
     private static DatabaseManager instance;
     private Connection connection;
 
-    // ── Constructor ──────────────────────────────────────────────────────────
-
+    /**
+     * Private constructor to prevent external instantiation.
+     * Automatically establishes the initial database connection upon creation.
+     */
     private DatabaseManager() {
         openConnection();
     }
 
-    // ── Singleton accessor ───────────────────────────────────────────────────
-
     /**
-     * Returns the single DatabaseManager instance, creating it on first call.
-     * Synchronized to be safe even if two threads race during startup.
+     * Retrieves the singleton instance of the database manager.
+     *
+     * @return the synchronized, active instance of the {@code DatabaseManager}
      */
     public static synchronized DatabaseManager getInstance() {
         if (instance == null) {
@@ -44,11 +42,15 @@ public class DatabaseManager {
         return instance;
     }
 
-    // ── Public API ───────────────────────────────────────────────────────────
-
     /**
-     * Returns the live Connection, reopening it automatically if it was
-     * closed (e.g. after a test teardown).
+     * Retrieves the active database connection.
+     * <p>
+     * Automatically attempts to re-establish the connection if it has been
+     * inadvertently closed or dropped.
+     * </p>
+     *
+     * @return the active JDBC {@link Connection}
+     * @throws RuntimeException if the connection state cannot be verified
      */
     public Connection getConnection() {
         try {
@@ -62,7 +64,11 @@ public class DatabaseManager {
     }
 
     /**
-     * Gracefully closes the connection.  Call this once from MainApp.stop().
+     * Gracefully terminates the active database connection.
+     * <p>
+     * This method must be invoked during the application shutdown sequence
+     * to release resources and prevent database lock issues.
+     * </p>
      */
     public void closeConnection() {
         try {
@@ -75,8 +81,11 @@ public class DatabaseManager {
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
+    /**
+     * Initializes the JDBC connection using the configured driver and credentials.
+     *
+     * @throws RuntimeException if the JDBC driver is missing or the connection fails
+     */
     private void openConnection() {
         try {
             // Ensure H2 driver is loaded (needed in some fat-jar setups)

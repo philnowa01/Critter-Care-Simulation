@@ -11,7 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JDBC implementation of AlertRepository.
+ * Provides a JDBC-based implementation of the {@link AlertRepository} interface.
+ * <p>
+ * This class handles the direct data access operations for alert entities,
+ * utilizing raw SQL statements and connections managed by the central
+ * {@link DatabaseManager}.
+ * </p>
  */
 public class AlertRepositoryImpl implements AlertRepository {
 
@@ -43,16 +48,18 @@ public class AlertRepositoryImpl implements AlertRepository {
 
     private static final String DELETE = "DELETE FROM alerts WHERE id = ?";
 
-    // ── Dependencies ─────────────────────────────────────────────────────────
-
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new repository implementation.
+     *
+     * @param dbManager the database manager providing JDBC connections
+     */
     public AlertRepositoryImpl(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    // ── Interface implementation ─────────────────────────────────────────────
-
+    /** {@inheritDoc} */
     @Override
     public List<Alert> findAll() {
         List<Alert> alerts = new ArrayList<>();
@@ -67,6 +74,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         return alerts;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Alert> findActive() {
         List<Alert> alerts = new ArrayList<>();
@@ -81,6 +89,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         return alerts;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Alert> findById(int id) {
         try (PreparedStatement stmt =
@@ -97,6 +106,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         return Optional.empty();
     }
 
+    /** {@inheritDoc} */
     @Override
     public Alert save(Alert alert) {
         try (PreparedStatement stmt =
@@ -116,6 +126,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         return alert;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void update(Alert alert) {
         try (PreparedStatement stmt =
@@ -129,6 +140,7 @@ public class AlertRepositoryImpl implements AlertRepository {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void delete(int id) {
         try (PreparedStatement stmt =
@@ -140,8 +152,13 @@ public class AlertRepositoryImpl implements AlertRepository {
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
+    /**
+     * Maps the current row of the provided {@link ResultSet} to a new {@link Alert} instance.
+     *
+     * @param rs the active result set
+     * @return a fully populated alert entity
+     * @throws SQLException if a column label is invalid or a database error occurs
+     */
     private Alert mapRow(ResultSet rs) throws SQLException {
         Alert alert = new Alert();
         alert.setId(rs.getInt("id"));
@@ -161,6 +178,13 @@ public class AlertRepositoryImpl implements AlertRepository {
         return alert;
     }
 
+    /**
+     * Populates the provided {@link PreparedStatement} with the state of the given alert.
+     *
+     * @param stmt  the statement to be populated
+     * @param alert the entity containing the required state
+     * @throws SQLException if setting a parameter fails
+     */
     private void setParams(PreparedStatement stmt, Alert alert)
             throws SQLException {
         stmt.setString   (1, alert.getType().name());

@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.crittercare.controller.AlertsController"
+      styleClass="view-root" spacing="16">
+    <padding><Insets top="20" right="24" bottom="20" left="24"/></padding>
+
+    <fx:define>
+        <ToggleGroup fx:id="filterGroup"/>
+    </fx:define>
+
+    <!-- ── Stat cards ─────────────────────────────────────────────── -->
+    <HBox spacing="16">
+
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Critical Alerts"      styleClass="card-label"/>
+                    <Label fx:id="criticalLabel"       text="—" styleClass="card-value card-value-alert"/>
+                    <Label text="Require immediate action" styleClass="card-sub-danger"/>
+                </VBox>
+                <Label text="🚨" style="-fx-font-size: 26px;"/>
+            </HBox>
+        </VBox>
+
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="High Priority"        styleClass="card-label"/>
+                    <Label fx:id="highLabel"           text="—" styleClass="card-value card-value-warning"/>
+                    <Label text="Needs attention" styleClass="card-sub-warning"/>
+                </VBox>
+                <Label text="⚠" style="-fx-font-size: 26px; -fx-text-fill: #D97706;"/>
+            </HBox>
+        </VBox>
+
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Active Alerts"        styleClass="card-label"/>
+                    <Label fx:id="activeAlertsLabel"   text="—" styleClass="card-value"/>
+                    <Label text="Currently open" styleClass="card-sub-ok"/>
+                </VBox>
+                <Label text="🔔" style="-fx-font-size: 26px;"/>
+            </HBox>
+        </VBox>
+
+        <VBox styleClass="stat-card" HBox.hgrow="ALWAYS">
+            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Total (All Time)"     styleClass="card-label"/>
+                    <Label fx:id="totalAlertsLabel"    text="—" styleClass="card-value"/>
+                    <Label text="Lifetime records" styleClass="card-sub-ok"/>
+                </VBox>
+                <Label text="📊" style="-fx-font-size: 26px;"/>
+            </HBox>
+        </VBox>
+
+    </HBox>
+
+    <!-- ── Filter toolbar ─────────────────────────────────────────── -->
+    <HBox spacing="8" alignment="CENTER_LEFT" styleClass="toolbar">
+        <ToggleButton fx:id="filterAll"      text="All"      styleClass="filter-toggle"
+                      toggleGroup="$filterGroup" selected="true" onAction="#applyFilter"/>
+        <ToggleButton fx:id="filterActive"   text="Active"   styleClass="filter-toggle"
+                      toggleGroup="$filterGroup" onAction="#applyFilter"/>
+        <ToggleButton fx:id="filterCritical" text="Critical" styleClass="filter-toggle"
+                      toggleGroup="$filterGroup" onAction="#applyFilter"/>
+        <ToggleButton fx:id="filterResolved" text="Resolved" styleClass="filter-toggle"
+                      toggleGroup="$filterGroup" onAction="#applyFilter"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="btnResolveAll" text="✓ Resolve Selected (0)" styleClass="btn-primary"
+                onAction="#resolveAllAlerts"/>
+        <Button text="↻ Refresh" styleClass="btn-ghost" onAction="#refreshAlerts"/>
+    </HBox>
+
+    <!-- ── Active alerts label ────────────────────────────────────── -->
+    <Label fx:id="activeCountHeading" text="Active Alerts (0)"
+           style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1A1A1A;"/>
+
+    <!-- ── Main area: table + detail panel ────────────────────────── -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+        <!-- Alerts table -->
+        <TableView fx:id="alertsTable" HBox.hgrow="ALWAYS" styleClass="data-table">
+            <columns>
+                <TableColumn fx:id="colTime"     text="Time Raised" prefWidth="120"/>
+                <TableColumn fx:id="colSource"   text="Source"      prefWidth="160"/>
+                <TableColumn fx:id="colType"     text="Category"    prefWidth="130"/>
+                <TableColumn fx:id="colSeverity" text="Severity"    prefWidth="100"/>
+                <TableColumn fx:id="colMessage"  text="Message"     prefWidth="230"/>
+                <TableColumn fx:id="colStatus"   text="Status"      prefWidth="110"/>
+                <TableColumn fx:id="colActions"  text="Actions"     prefWidth="140"/>
+            </columns>
+            <placeholder>
+                <Label text="No alerts" styleClass="table-placeholder"/>
+            </placeholder>
+        </TableView>
+
+        <!-- Selected Alert detail panel -->
+        <VBox fx:id="detailPanel" styleClass="detail-panel" prefWidth="320" minWidth="280"
+              visible="false" managed="false">
+
+            <!-- Panel header -->
+            <HBox styleClass="detail-header" alignment="CENTER_LEFT" spacing="10">
+                <VBox spacing="2" HBox.hgrow="ALWAYS">
+                    <Label text="Selected Alert" styleClass="panel-title"/>
+                    <Label fx:id="detailSeverityChip" text="" styleClass="chip chip-critical"/>
+                </VBox>
+                <Button text="✕" styleClass="btn-ghost"
+                        style="-fx-padding: 4 8; -fx-border-color: transparent;"
+                        onAction="#closeDetailPanel"/>
+            </HBox>
+
+            <!-- Alert info -->
+            <VBox spacing="12" VBox.vgrow="ALWAYS">
+                <padding><Insets top="16" right="16" bottom="16" left="16"/></padding>
+
+                <!-- Source -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label fx:id="detailSourceIcon" text="🦁"
+                           style="-fx-font-size: 28px; -fx-background-color: #F9F7F4;
+                                  -fx-background-radius: 8; -fx-padding: 6 8;"/>
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label fx:id="detailSourceName" text="—"
+                               style="-fx-font-weight: bold; -fx-font-size: 15px;"/>
+                        <Label fx:id="detailSourceId" text=""
+                               styleClass="detail-field-label"/>
+                    </VBox>
+                </HBox>
+
+                <Separator/>
+
+                <!-- Fields grid -->
+                <VBox spacing="10">
+
+                    <HBox alignment="CENTER_LEFT">
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="Alert ID" styleClass="detail-field-label"/>
+                            <Label fx:id="detailAlertId" text="—" styleClass="detail-field-value"/>
+                        </VBox>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="Time Raised" styleClass="detail-field-label"/>
+                            <Label fx:id="detailTimeRaised" text="—" styleClass="detail-field-value"/>
+                        </VBox>
+                    </HBox>
+
+                    <HBox alignment="CENTER_LEFT">
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="Category" styleClass="detail-field-label"/>
+                            <Label fx:id="detailCategory" text="—" styleClass="detail-field-value"/>
+                        </VBox>
+                        <VBox spacing="2" HBox.hgrow="ALWAYS">
+                            <Label text="Status" styleClass="detail-field-label"/>
+                            <Label fx:id="detailStatus" text="—" styleClass="detail-field-value"/>
+                        </VBox>
+                    </HBox>
+
+                </VBox>
+
+                <Separator/>
+
+                <!-- Reason -->
+                <VBox spacing="6">
+                    <Label text="Reason for Alert" styleClass="detail-section-title"/>
+                    <HBox spacing="8" alignment="TOP_LEFT">
+                        <Label text="⚠" style="-fx-text-fill: #D97706; -fx-font-size: 14px;"/>
+                        <Label fx:id="detailMessage" text="—" styleClass="detail-field-text"
+                               wrapText="true" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <!-- Action buttons -->
+                <VBox spacing="8">
+                    <Button fx:id="detailAckBtn"     text="Acknowledge"   styleClass="btn-secondary"
+                            maxWidth="Infinity" onAction="#acknowledgeFromDetail"/>
+                    <Button fx:id="detailResolveBtn" text="✓ Mark as Resolved" styleClass="btn-primary"
+                            maxWidth="Infinity" onAction="#resolveFromDetail"/>
+                </VBox>
+
+            </VBox>
+        </VBox>
+
+    </HBox>
+</VBox>

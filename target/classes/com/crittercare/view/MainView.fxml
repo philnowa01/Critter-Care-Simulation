@@ -57,6 +57,9 @@
                 <Button fx:id="btnMinigame" text="🎮  Minigame"
                         styleClass="nav-button" onAction="#showMinigame"
                         maxWidth="Infinity"/>
+                <Button fx:id="btnSettings" text="⚙  Settings"
+                        styleClass="nav-button" onAction="#showSettings"
+                        maxWidth="Infinity"/>
 
             </VBox>
 

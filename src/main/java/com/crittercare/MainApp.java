@@ -16,6 +16,7 @@ import com.crittercare.service.AlertService;
 import com.crittercare.service.AnimalService;
 import com.crittercare.service.EnclosureService;
 import com.crittercare.service.MaintenanceLogService;
+import com.crittercare.service.ThemeService;
 import com.crittercare.service.ZookeeperService;
 import com.crittercare.simulation.SimulationEngine;
 import com.crittercare.view.ViewFactory;
@@ -60,13 +61,18 @@ public class MainApp extends Application {
         // 4. Simulation engine
         simulationEngine = new SimulationEngine(animalService, enclosureService, alertService);
 
-        // 5. ViewFactory — the DI bridge between services and JavaFX controllers
+        // 5. Theme service (in-memory, no repository needed)
+        ThemeService themeService = new ThemeService();
+
+        // 6. ViewFactory — the DI bridge between services and JavaFX controllers
         ViewFactory viewFactory = new ViewFactory(
                 animalService, enclosureService, logService, alertService,
-                simulationEngine, zookeeperService, dbInitializer);
+                simulationEngine, zookeeperService, dbInitializer, themeService);
 
-        // 6. Build scene
-        Scene scene = new Scene(viewFactory.loadMainView(), 1280, 800);
+        // 7. Build scene — capture root so ThemeService can apply CSS classes to it
+        javafx.scene.Parent mainRoot = viewFactory.loadMainView();
+        themeService.setSceneRoot(mainRoot);
+        Scene scene = new Scene(mainRoot, 1280, 800);
         scene.getStylesheets().add(
                 getClass().getResource("/com/crittercare/view/styles.css").toExternalForm());
 

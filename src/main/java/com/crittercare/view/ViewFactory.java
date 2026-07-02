@@ -7,11 +7,13 @@ import com.crittercare.controller.DashboardController;
 import com.crittercare.controller.EnclosuresController;
 import com.crittercare.controller.MainController;
 import com.crittercare.controller.MinigameController;
+import com.crittercare.controller.SettingsController;
 import com.crittercare.persistence.DatabaseInitializer;
 import com.crittercare.service.AlertService;
 import com.crittercare.service.AnimalService;
 import com.crittercare.service.EnclosureService;
 import com.crittercare.service.MaintenanceLogService;
+import com.crittercare.service.ThemeService;
 import com.crittercare.service.ZookeeperService;
 import com.crittercare.simulation.SimulationEngine;
 import javafx.fxml.FXMLLoader;
@@ -47,6 +49,7 @@ public class ViewFactory {
     private final SimulationEngine       simulationEngine;
     private final ZookeeperService       zookeeperService;
     private final DatabaseInitializer    dbInitializer;
+    private final ThemeService           themeService;
 
     // ── Cached controllers ────────────────────────────────────────────────────
     private MainController       mainController;
@@ -55,7 +58,7 @@ public class ViewFactory {
     private EnclosuresController enclosuresController;
     private CareLogsController   careLogsController;
     private AlertsController     alertsController;
-    private MinigameController   minigameController;
+    private SettingsController   settingsController;
 
     // ── Cached views (lazy-loaded on first navigation) ────────────────────────
     private Parent dashboardView;
@@ -64,6 +67,7 @@ public class ViewFactory {
     private Parent careLogsView;
     private Parent alertsView;
     private Parent minigameView;
+    private Parent settingsView;
 
     // ── Constructor ───────────────────────────────────────────────────────────
 
@@ -73,7 +77,8 @@ public class ViewFactory {
                        AlertService alertService,
                        SimulationEngine simulationEngine,
                        ZookeeperService zookeeperService,
-                       DatabaseInitializer dbInitializer) {
+                       DatabaseInitializer dbInitializer,
+                       ThemeService themeService) {
         this.animalService    = animalService;
         this.enclosureService = enclosureService;
         this.logService       = logService;
@@ -81,6 +86,7 @@ public class ViewFactory {
         this.simulationEngine = simulationEngine;
         this.zookeeperService = zookeeperService;
         this.dbInitializer    = dbInitializer;
+        this.themeService     = themeService;
     }
 
     // ── Main shell ────────────────────────────────────────────────────────────
@@ -166,10 +172,20 @@ public class ViewFactory {
         if (minigameView == null) {
             FXMLLoader loader = fxmlLoader("/com/crittercare/view/Minigame.fxml");
             loader.setControllerFactory(this::createController);
-            minigameView       = loader.load();
-            minigameController = loader.getController();
+            minigameView = loader.load();
         }
         return minigameView;
+    }
+
+    /** Returns the Settings view, loading it on first call. */
+    public Parent loadSettings() throws IOException {
+        if (settingsView == null) {
+            FXMLLoader loader = fxmlLoader("/com/crittercare/view/Settings.fxml");
+            loader.setControllerFactory(this::createController);
+            settingsView       = loader.load();
+            settingsController = loader.getController();
+        }
+        return settingsView;
     }
 
     // ── Controller getters (for testing / cross-controller wiring) ────────────
@@ -180,6 +196,7 @@ public class ViewFactory {
     public EnclosuresController getEnclosuresController() { return enclosuresController; }
     public CareLogsController   getCareLogsController()   { return careLogsController; }
     public AlertsController     getAlertsController()     { return alertsController; }
+    public SettingsController   getSettingsController()   { return settingsController; }
 
     // ── Private: controller factory ───────────────────────────────────────────
 
@@ -210,6 +227,9 @@ public class ViewFactory {
         }
         if (type == MinigameController.class) {
             return new MinigameController();
+        }
+        if (type == SettingsController.class) {
+            return new SettingsController(themeService);
         }
         throw new IllegalStateException(
                 "ViewFactory: no wiring defined for controller type " + type.getName());

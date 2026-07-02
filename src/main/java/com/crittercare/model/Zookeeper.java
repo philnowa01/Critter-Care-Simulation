@@ -12,12 +12,6 @@ public class Zookeeper {
     private String name;
 
     /**
-     * Default constructor required for framework instantiation.
-     */
-    public Zookeeper() {
-    }
-
-    /**
      * Constructs a new zookeeper with the specified identity attributes.
      *
      * @param id   the unique system identifier for the zookeeper

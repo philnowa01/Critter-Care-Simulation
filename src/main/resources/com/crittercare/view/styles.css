@@ -330,6 +330,24 @@
 
 .panel-link:hover { -fx-text-fill: -cc-accent-hov; }
 
+.habitat-header-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: -cc-accent;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -cc-accent;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 14;
+    -fx-cursor: hand;
+}
+.habitat-header-btn:hover {
+    -fx-background-color: -cc-accent-light;
+    -fx-border-color: -cc-accent-hov;
+    -fx-text-fill: -cc-accent-hov;
+}
+
 /* ── Habitat map pane ───────────────────────────────────────────────── */
 .habitat-map-pane {
     -fx-background-color: #D4C9A8;
@@ -592,7 +610,7 @@
 }
 
 .data-table .table-row-cell:odd   { -fx-background-color: -cc-surface; }
-.data-table .table-row-cell:hover { -fx-background-color: #F9F7F4; -fx-cursor: hand; }
+.data-table .table-row-cell:hover { -fx-background-color: -cc-surface-alt; -fx-cursor: hand; }
 
 .data-table .table-row-cell:selected             { -fx-background-color: -cc-accent-light; }
 .data-table .table-row-cell:selected .table-cell { -fx-text-fill: -cc-text; }
@@ -806,4 +824,128 @@
 .dialog-pane .button-bar .button:hover   { -fx-background-color: -cc-surface-alt; }
 .dialog-pane .button-bar .button:default { -fx-background-color: -cc-accent; -fx-text-fill: white; -fx-border-color: transparent; }
 .dialog-pane .button-bar .button:default:hover { -fx-background-color: -cc-accent-hov; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   THEME SYSTEM
+   Theme classes are added/removed on .root by ThemeService.
+   JavaFX re-evaluates all -cc-* looked-up colors whenever .root's
+   style class list changes, so every node updates without reloading FXML.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Dark mode (Forest dark — default dark palette) ─────────────────── */
+.root.dark {
+    -cc-body:         #0D1912;
+    -cc-surface:      #152218;
+    -cc-surface-alt:  #1A2B1D;
+    -cc-border:       rgba(255,255,255,0.09);
+    -cc-border-light: rgba(255,255,255,0.05);
+    -cc-text:         #E0EDE6;
+    -cc-text-dim:     #8CA499;
+    -cc-text-muted:   #4E6B5C;
+    -cc-accent:       #34D399;
+    -cc-accent-hov:   #6EE7B7;
+    -cc-accent-light: rgba(52,211,153,0.14);
+    -fx-background-color: -cc-body;
+}
+
+/* ── Theme: Ocean (navy / blue) ─────────────────────────────────────── */
+.root.theme-ocean {
+    -cc-sidebar:        #1E3A5F;
+    -cc-sidebar-hover:  #254B7A;
+    -cc-sidebar-active: #152D4A;
+    -cc-sidebar-text:   #BFDBFE;
+    -cc-sidebar-muted:  #6FA3D8;
+    -cc-accent:         #1D4ED8;
+    -cc-accent-hov:     #2563EB;
+    -cc-accent-light:   #DBEAFE;
+}
+.root.dark.theme-ocean {
+    -cc-body:        #071525;
+    -cc-surface:     #0F2240;
+    -cc-surface-alt: #142C50;
+}
+
+/* ── Theme: Slate (charcoal / gray-blue) ────────────────────────────── */
+.root.theme-slate {
+    -cc-sidebar:        #1E293B;
+    -cc-sidebar-hover:  #334155;
+    -cc-sidebar-active: #0F172A;
+    -cc-sidebar-text:   #CBD5E1;
+    -cc-sidebar-muted:  #64748B;
+    -cc-accent:         #475569;
+    -cc-accent-hov:     #334155;
+    -cc-accent-light:   #F1F5F9;
+}
+.root.dark.theme-slate {
+    -cc-body:        #0A0F1A;
+    -cc-surface:     #131C2E;
+    -cc-surface-alt: #1A2540;
+}
+
+/* ── Theme: Rose (deep red) ─────────────────────────────────────────── */
+.root.theme-rose {
+    -cc-sidebar:        #881337;
+    -cc-sidebar-hover:  #9F1239;
+    -cc-sidebar-active: #6D0F2C;
+    -cc-sidebar-text:   #FECDD3;
+    -cc-sidebar-muted:  #FDA4AF;
+    -cc-accent:         #BE123C;
+    -cc-accent-hov:     #9F1239;
+    -cc-accent-light:   #FFE4E6;
+}
+.root.dark.theme-rose {
+    -cc-body:        #1C050F;
+    -cc-surface:     #2D0A1C;
+    -cc-surface-alt: #3A1025;
+}
+
+/* ── Theme: Midnight (deep purple) ──────────────────────────────────── */
+.root.theme-midnight {
+    -cc-sidebar:        #2D1B69;
+    -cc-sidebar-hover:  #3B2490;
+    -cc-sidebar-active: #1E1047;
+    -cc-sidebar-text:   #DDD6FE;
+    -cc-sidebar-muted:  #A78BFA;
+    -cc-accent:         #7C3AED;
+    -cc-accent-hov:     #6D28D9;
+    -cc-accent-light:   #EDE9FE;
+}
+.root.dark.theme-midnight {
+    -cc-body:        #0D0A1E;
+    -cc-surface:     #1A1338;
+    -cc-surface-alt: #221A46;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   SETTINGS PAGE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.settings-section-header {
+    -fx-text-fill: -cc-text-muted;
+    -fx-font-size: 10px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 16 0;
+}
+
+/* Pill-shaped toggle for light/dark mode */
+.dark-mode-toggle {
+    -fx-background-color: -cc-surface-alt;
+    -fx-background-radius: 20;
+    -fx-text-fill: -cc-text-dim;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+    -fx-border-color: -cc-border;
+    -fx-border-radius: 20;
+    -fx-border-width: 1.5;
+    -fx-font-size: 13px;
+    -fx-min-width: 152;
+}
+.dark-mode-toggle:hover {
+    -fx-border-color: -cc-text-muted;
+}
+.dark-mode-toggle:selected {
+    -fx-background-color: -cc-sidebar;
+    -fx-text-fill: -cc-sidebar-text;
+    -fx-border-color: -cc-sidebar;
+}
 

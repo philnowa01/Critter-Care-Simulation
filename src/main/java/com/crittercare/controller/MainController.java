@@ -59,6 +59,7 @@ public class MainController implements SimulationListener {
     @FXML private Button    btnCareLogs;
     @FXML private Button    btnAlerts;
     @FXML private Button    btnMinigame;
+    @FXML private Button    btnSettings;
     @FXML private Label     alertBadge;
     @FXML private Label     alertBadge2;
     @FXML private Label     pageTitle;
@@ -130,6 +131,13 @@ public class MainController implements SimulationListener {
     @FXML
     public void showMinigame() {
         navigate("Minigame", viewFactory::loadMinigame, btnMinigame);
+    }
+
+    @FXML
+    public void showSettings() {
+        navigate("Settings", viewFactory::loadSettings, btnSettings);
+        SettingsController sc = viewFactory.getSettingsController();
+        if (sc != null) sc.refresh();
     }
 
     // ── Zookeeper popup ───────────────────────────────────────────────────────

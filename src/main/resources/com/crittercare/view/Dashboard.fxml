@@ -89,7 +89,7 @@
     </HBox>
 
     <!-- ── Row 2: Habitat overview + Trends ──────────────────────── -->
-    <HBox spacing="16" prefHeight="320" minHeight="270">
+    <HBox fx:id="habitatRow" spacing="16" prefHeight="320" minHeight="270">
 
         <!-- Habitat Overview -->
         <VBox styleClass="panel" HBox.hgrow="ALWAYS">
@@ -97,7 +97,12 @@
                 <padding><Insets top="14" right="16" bottom="14" left="16"/></padding>
                 <Label text="Habitat Overview" styleClass="panel-title"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="View Enclosures ↗" styleClass="panel-link" onAction="#goToEnclosures"/>
+                <HBox spacing="8" alignment="CENTER">
+                    <Button fx:id="expandHabitatBtn" text="⊞  Expand"
+                            styleClass="habitat-header-btn" onAction="#toggleHabitatExpand"/>
+                    <Button text="View Enclosures ↗"
+                            styleClass="habitat-header-btn" onAction="#goToEnclosures"/>
+                </HBox>
             </HBox>
             <!-- Illustrated habitat map, populated by controller -->
             <StackPane fx:id="habitatMap" styleClass="habitat-map-pane" VBox.vgrow="ALWAYS"/>

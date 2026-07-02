@@ -18,12 +18,15 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.geometry.HPos;
+import javafx.geometry.VPos;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -67,7 +70,10 @@ public class DashboardController implements SimulationListener {
 
     // ── FXML: habitat map ─────────────────────────────────────────────────────
     @FXML StackPane habitatMap;
-    private Canvas mapCanvas;
+    @FXML HBox      habitatRow;      // kept for FXML binding; not manipulated
+    @FXML Button    expandHabitatBtn;
+    private Canvas     mapCanvas;
+    private StackPane  habitatOverlay;
 
     // ── FXML: attention animals ───────────────────────────────────────────────
     @FXML VBox attentionAnimalsBox;
@@ -170,6 +176,80 @@ public class DashboardController implements SimulationListener {
     @FXML void goToCareLogs()    { if (onNavigateToLogs       != null) onNavigateToLogs.run(); }
     @FXML void goToEnclosures()  { if (onNavigateToEnclosures != null) onNavigateToEnclosures.run(); }
 
+    @FXML
+    void toggleHabitatExpand() {
+        if (isOverlayVisible()) { closeHabitatPopup(); return; }
+        habitatOverlay = null;   // discard stale reference if user navigated away
+        showHabitatPopup();
+    }
+
+    private boolean isOverlayVisible() {
+        if (habitatOverlay == null || habitatMap.getScene() == null) return false;
+        Node cp = habitatMap.getScene().lookup("#contentPane");
+        return cp instanceof StackPane sp && sp.getChildren().contains(habitatOverlay);
+    }
+
+    private void showHabitatPopup() {
+        // ── canvas + full grid for popup ──────────────────────────────────
+        List<Enclosure> all = enclosureService.getAllEnclosures();
+        Canvas popupCanvas  = new Canvas();
+        GridPane fullGrid   = buildHabitatGrid(all);
+        fullGrid.setMaxWidth(Double.MAX_VALUE);
+        fullGrid.setMaxHeight(Double.MAX_VALUE);
+
+        StackPane mapPane = new StackPane(popupCanvas, fullGrid);
+        mapPane.setStyle("-fx-background-color: #D4C9A8; -fx-background-radius: 0 0 12 12;");
+        VBox.setVgrow(mapPane, Priority.ALWAYS);
+        popupCanvas.widthProperty().bind(mapPane.widthProperty());
+        popupCanvas.heightProperty().bind(mapPane.heightProperty());
+        popupCanvas.widthProperty().addListener((obs, o, n) -> drawMapBg(popupCanvas));
+        popupCanvas.heightProperty().addListener((obs, o, n) -> drawMapBg(popupCanvas));
+
+        // ── panel header ──────────────────────────────────────────────────
+        Label titleLbl = new Label("Habitat Overview — All Enclosures");
+        titleLbl.getStyleClass().add("panel-title");
+        Button closeBtn = new Button("✕  Close");
+        closeBtn.getStyleClass().add("habitat-header-btn");
+        closeBtn.setOnAction(e -> closeHabitatPopup());
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        HBox header = new HBox(12, titleLbl, spacer, closeBtn);
+        header.getStyleClass().add("panel-header");
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setPadding(new Insets(14, 16, 14, 16));
+
+        // ── popup panel ───────────────────────────────────────────────────
+        VBox panel = new VBox(0, header, mapPane);
+        panel.setMaxWidth(960);
+        panel.setMaxHeight(600);
+        panel.setStyle(
+            "-fx-background-color: -cc-surface;" +
+            "-fx-background-radius: 14;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 32, 0, 0, 8);"
+        );
+        panel.setOnMouseClicked(e -> e.consume());
+
+        // ── semi-transparent backdrop, closes on click ────────────────────
+        StackPane backdrop = new StackPane(panel);
+        backdrop.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
+        backdrop.setOnMouseClicked(e -> closeHabitatPopup());
+        StackPane.setMargin(panel, new Insets(50, 50, 50, 50));
+
+        habitatOverlay = backdrop;
+
+        Node cp = habitatMap.getScene().lookup("#contentPane");
+        if (cp instanceof StackPane contentPane) contentPane.getChildren().add(habitatOverlay);
+        if (expandHabitatBtn != null) expandHabitatBtn.setText("⊟  Collapse");
+    }
+
+    private void closeHabitatPopup() {
+        if (habitatOverlay == null) return;
+        Node cp = habitatMap.getScene().lookup("#contentPane");
+        if (cp instanceof StackPane sp) sp.getChildren().remove(habitatOverlay);
+        habitatOverlay = null;
+        if (expandHabitatBtn != null) expandHabitatBtn.setText("⊞  Expand");
+    }
+
     // ── Callbacks ─────────────────────────────────────────────────────────────
 
     public void setOnNavigateToLogs(Runnable cb)       { this.onNavigateToLogs = cb; }
@@ -233,7 +313,9 @@ public class DashboardController implements SimulationListener {
     private void refreshHabitatMap(List<Enclosure> enclosures) {
         if (habitatMap == null) return;
 
-        GridPane grid = buildHabitatGrid(enclosures);
+        // Compact inline view: first 4 only — see popup for all 8
+        List<Enclosure> compact = enclosures.stream().limit(4).toList();
+        GridPane grid = buildHabitatGrid(compact);
         grid.setMaxWidth(Double.MAX_VALUE);
         grid.setMaxHeight(Double.MAX_VALUE);
 
@@ -308,41 +390,37 @@ public class DashboardController implements SimulationListener {
         grid.setVgap(10);
         grid.setPadding(new Insets(14, 14, 14, 14));
 
-        for (int i = 0; i < 3; i++) {
+        int cols = enclosures.isEmpty() ? 1 : Math.min(4, enclosures.size());
+        int rows = enclosures.isEmpty() ? 1 : (int) Math.ceil(enclosures.size() / (double) cols);
+
+        for (int i = 0; i < cols; i++) {
             ColumnConstraints cc = new ColumnConstraints();
             cc.setHgrow(Priority.ALWAYS);
-            cc.setPercentWidth(33.33);
+            cc.setPercentWidth(25.0);
             grid.getColumnConstraints().add(cc);
         }
-        for (int i = 0; i < 2; i++) {
+        for (int i = 0; i < rows; i++) {
             RowConstraints rc = new RowConstraints();
             rc.setVgrow(Priority.ALWAYS);
-            rc.setPercentHeight(50.0);
+            rc.setPercentHeight(100.0 / rows);
             grid.getRowConstraints().add(rc);
         }
 
-        // 3-column × 2-row layout; [1,1] center-bottom intentionally has REPTILE_HOUSE
-        // so the lake on the canvas shows through the corner gaps
-        record ZonePos(HabitatType type, int col, int row) {}
-        List<ZonePos> layout = List.of(
-            new ZonePos(HabitatType.SAVANNAH,      0, 0),
-            new ZonePos(HabitatType.FOREST,        1, 0),
-            new ZonePos(HabitatType.AQUATIC,       2, 0),
-            new ZonePos(HabitatType.AVIARY,        0, 1),
-            new ZonePos(HabitatType.REPTILE_HOUSE, 1, 1),
-            new ZonePos(HabitatType.ARCTIC,        2, 1)
-        );
-
-        for (ZonePos zp : layout) {
-            List<Enclosure> ofType = enclosures.stream()
-                    .filter(e -> e.getHabitatType() == zp.type())
-                    .toList();
-            VBox card = buildMapZoneCard(zp.type(), ofType);
-            GridPane.setHgrow(card, Priority.ALWAYS);
-            GridPane.setVgrow(card, Priority.ALWAYS);
-            grid.add(card, zp.col(), zp.row());
+        if (enclosures.isEmpty()) {
+            Label empty = new Label("No enclosures added yet");
+            empty.setStyle("-fx-text-fill: #9CA3AF; -fx-font-size: 13px;");
+            GridPane.setColumnSpan(empty, cols);
+            GridPane.setHalignment(empty, HPos.CENTER);
+            GridPane.setValignment(empty, VPos.CENTER);
+            grid.add(empty, 0, 0);
+        } else {
+            for (int i = 0; i < enclosures.size(); i++) {
+                VBox card = buildEnclosureCard(enclosures.get(i));
+                GridPane.setHgrow(card, Priority.ALWAYS);
+                GridPane.setVgrow(card, Priority.ALWAYS);
+                grid.add(card, i % cols, i / cols);
+            }
         }
-
         return grid;
     }
 
@@ -420,38 +498,37 @@ public class DashboardController implements SimulationListener {
 
 
     
-    private VBox buildMapZoneCard(HabitatType type, List<Enclosure> enclosures) {
-        int animalCount = enclosures.stream().mapToInt(e -> e.getAnimalIds().size()).sum();
-        boolean critical = enclosures.stream().anyMatch(Enclosure::isCritical);
-        boolean warning  = !critical && enclosures.stream().anyMatch(Enclosure::isCleaningDue);
+    private VBox buildEnclosureCard(Enclosure enc) {
+        boolean critical = enc.isCritical();
+        boolean warning  = !critical && enc.isCleaningDue();
 
         String status, statusColor;
-        if (enclosures.isEmpty())  { status = "● No Data";     statusColor = "#9CA3AF"; }
-        else if (critical)         { status = "● Alert";        statusColor = "#DC2626"; }
-        else if (warning)          { status = "● Cleaning Due"; statusColor = "#D97706"; }
-        else                       { status = "● Good";         statusColor = "#16A34A"; }
+        if (critical)     { status = "● Alert";        statusColor = "#DC2626"; }
+        else if (warning) { status = "● Cleaning Due"; statusColor = "#D97706"; }
+        else              { status = "● Good";         statusColor = "#16A34A"; }
 
-Node animalLbl = buildZoneIconNode(type);
+        Node iconNode = buildZoneIconNode(enc.getHabitatType());
 
-        Label nameLbl = new Label(zoneDisplayName(type));
+        Label nameLbl = new Label(enc.getName());
         nameLbl.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #1A1A1A; -fx-text-alignment: CENTER;");
         nameLbl.setWrapText(true);
         nameLbl.setMaxWidth(Double.MAX_VALUE);
         nameLbl.setAlignment(Pos.CENTER);
 
-        Label countLbl = new Label(animalCount > 0 ? animalCount + " animals" : "");
+        int animalCount = enc.getAnimalIds().size();
+        Label countLbl = new Label(animalCount + " animal" + (animalCount == 1 ? "" : "s"));
         countLbl.setStyle("-fx-font-size: 9px; -fx-text-fill: #6B7280;");
 
         Label statusLbl = new Label(status);
         statusLbl.setStyle("-fx-font-size: 9px; -fx-text-fill: " + statusColor + "; -fx-font-weight: bold;");
 
-        VBox card = new VBox(4, animalLbl, nameLbl, countLbl, statusLbl);
+        VBox card = new VBox(4, iconNode, nameLbl, countLbl, statusLbl);
         card.setAlignment(Pos.CENTER);
         card.setMaxWidth(Double.MAX_VALUE);
         card.setMaxHeight(Double.MAX_VALUE);
         card.setStyle(
-            "-fx-background-color: " + zoneBgColor(type) + ";" +
-            "-fx-border-color: "     + zoneBorderColor(type) + ";" +
+            "-fx-background-color: " + zoneBgColor(enc.getHabitatType()) + ";" +
+            "-fx-border-color: "     + zoneBorderColor(enc.getHabitatType()) + ";" +
             "-fx-border-width: 2;" +
             "-fx-border-radius: 16;" +
             "-fx-background-radius: 16;" +
@@ -469,17 +546,6 @@ Node animalLbl = buildZoneIconNode(type);
             case AVIARY        -> "🦜";
             case ARCTIC        -> "🐅";
             case REPTILE_HOUSE -> "🦎";
-        };
-    }
-
-    private static String zoneDisplayName(HabitatType type) {
-        return switch (type) {
-            case SAVANNAH      -> "Savannah Plains";
-            case FOREST        -> "Primate Forest";
-            case AQUATIC       -> "Penguin Point";
-            case AVIARY        -> "Aviary";
-            case ARCTIC        -> "Big Cat Ridge";
-            case REPTILE_HOUSE -> "Reptile House";
         };
     }
 

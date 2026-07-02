@@ -10,14 +10,28 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Provides a JDBC-based implementation of the {@link ZookeeperRepository} interface.
+ * <p>
+ * This repository manages the direct data access operations for zookeeper entities,
+ * utilizing raw SQL statements and connections provided by the central
+ * {@link DatabaseManager}.
+ * </p>
+ */
 public class ZookeeperRepositoryImpl implements ZookeeperRepository {
 
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new repository implementation.
+     *
+     * @param dbManager the database manager providing JDBC connections
+     */
     public ZookeeperRepositoryImpl(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Zookeeper> findAll() {
         List<Zookeeper> list = new ArrayList<>();
@@ -33,6 +47,7 @@ public class ZookeeperRepositoryImpl implements ZookeeperRepository {
         return list;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Zookeeper save(String name) {
         String sql = "INSERT INTO zookeepers (name) VALUES (?)";
@@ -51,6 +66,7 @@ public class ZookeeperRepositoryImpl implements ZookeeperRepository {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean rename(int id, String newName) {
         String sql = "UPDATE zookeepers SET name = ? WHERE id = ?";
@@ -64,6 +80,7 @@ public class ZookeeperRepositoryImpl implements ZookeeperRepository {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public boolean delete(int id) {
         String sql = "DELETE FROM zookeepers WHERE id = ?";

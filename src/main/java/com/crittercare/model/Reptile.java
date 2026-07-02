@@ -1,41 +1,55 @@
 package com.crittercare.model;
 
 /**
- * Cold-blooded, scaled animal.
- *
- * Reptiles have the lowest hunger and hydration decay rate — their
- * ectothermic metabolism means they can go days without food.
- * They also require UVB lighting to synthesise vitamin D3; the
- * uvbRequirement field tracks how many hours of UVB exposure per day
- * the animal needs.
- *
- * Subtype-specific DB columns: is_venomous, uvb_requirement
+ * Represents a reptilian entity within the CritterCare simulation.
+ * <p>
+ * Reptiles are ectothermic (cold-blooded) animals. Their slower metabolism
+ * results in the lowest hunger and hydration decay rates among the animal
+ * classifications. Additionally, they require specific environmental conditions,
+ * such as adequate UVB lighting, to synthesize essential nutrients like vitamin D3.
+ * </p>
  */
 public class Reptile extends Animal {
 
     private boolean isVenomous;
     private double  uvbRequirement; // hours of UVB per day
 
-    // ── Constructors ─────────────────────────────────────────────────────────
-
+    /**
+     * Default constructor required for framework instantiation.
+     * Initializes the reptile with a standard baseline UVB daily requirement.
+     */
     public Reptile() {
         super();
         this.uvbRequirement = 5.0;
     }
 
+    /**
+     * Constructs a new reptile with core identity attributes.
+     *
+     * @param name    the given name of the reptile
+     * @param species the species designation
+     * @param age     the age in years
+     */
     public Reptile(String name, String species, int age) {
         super(name, species, age);
         this.uvbRequirement = 5.0;
     }
 
+    /**
+     * Constructs a fully initialized reptile with specific physiological and environmental traits.
+     *
+     * @param name           the given name of the reptile
+     * @param species        the species designation
+     * @param age            the age in years
+     * @param isVenomous     indicates whether the reptile produces venom
+     * @param uvbRequirement the required hours of UVB exposure per day
+     */
     public Reptile(String name, String species, int age,
                    boolean isVenomous, double uvbRequirement) {
         super(name, species, age);
         this.isVenomous      = isVenomous;
         this.uvbRequirement  = uvbRequirement;
     }
-
-    // ── Template Method hooks ────────────────────────────────────────────────
 
     @Override
     protected double getHungerRate() {
@@ -53,13 +67,17 @@ public class Reptile extends Animal {
         return 1.5;
     }
 
-    // ── Abstract method implementations ──────────────────────────────────────
-
     @Override
     public String getType() {
         return "REPTILE";
     }
 
+    /**
+     * Generates a sound specific to the reptile's species.
+     * Uses pattern matching to return the appropriate vocalization.
+     *
+     * @return a short sound description
+     */
     @Override
     public String makeSound() {
         return switch (getSpecies()) {
@@ -70,7 +88,7 @@ public class Reptile extends Animal {
         };
     }
 
-    // ── Getters & Setters ────────────────────────────────────────────────────
+    // Getters and Setters
 
     public boolean isVenomous()                         { return isVenomous; }
     public void setVenomous(boolean venomous)           { this.isVenomous = venomous; }

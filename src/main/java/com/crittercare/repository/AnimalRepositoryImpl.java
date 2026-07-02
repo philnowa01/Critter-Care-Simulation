@@ -13,19 +13,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JDBC implementation of AnimalRepository.
- *
- * Uses single-table inheritance: every Animal subtype is stored in one
- * "animals" table.  The "type" column (MAMMAL / BIRD / REPTILE) tells
- * mapRow() which subclass to instantiate.
- *
- * Subtype-specific columns (has_fur, wingspan_cm, is_venomous, …) are
- * nullable in the DB; rs.wasNull() is used after every numeric read to
- * avoid silently converting NULL to 0.
+ * Provides a JDBC-based implementation of the {@link AnimalRepository} interface.
+ * <p>
+ * This repository utilizes a single-table inheritance strategy to persist all
+ * {@link Animal} subtypes within a unified database structure. It handles the
+ * translation between relational rows and polymorphic domain entities by utilizing
+ * a type discriminator column.
+ * </p>
  */
 public class AnimalRepositoryImpl implements AnimalRepository {
-
-    // ── SQL constants ────────────────────────────────────────────────────────
 
     private static final String FIND_ALL = """
             SELECT id, name, species, type, age,
@@ -75,16 +71,19 @@ public class AnimalRepositoryImpl implements AnimalRepository {
 
     private static final String DELETE = "DELETE FROM animals WHERE id = ?";
 
-    // ── Dependencies ─────────────────────────────────────────────────────────
-
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new repository implementation.
+     *
+     * @param dbManager the database manager providing JDBC connections
+     */
     public AnimalRepositoryImpl(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    // ── Interface implementation ─────────────────────────────────────────────
 
+    /** {@inheritDoc} */
     @Override
     public List<Animal> findAll() {
         List<Animal> animals = new ArrayList<>();
@@ -99,6 +98,7 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return animals;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Animal> findById(int id) {
         try (PreparedStatement stmt =
@@ -115,6 +115,7 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return Optional.empty();
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Animal> findByEnclosureId(int enclosureId) {
         List<Animal> animals = new ArrayList<>();
@@ -133,6 +134,7 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return animals;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Animal save(Animal animal) {
         try (PreparedStatement stmt =
@@ -153,6 +155,7 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return animal;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void update(Animal animal) {
         try (PreparedStatement stmt =
@@ -167,6 +170,7 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void delete(int id) {
         try (PreparedStatement stmt =
@@ -178,17 +182,17 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
     /**
-     * Maps one ResultSet row to the correct Animal subclass.
-     * Called for both findAll() and findById().
+     * Maps the current row of the provided {@link ResultSet} to the appropriate {@link Animal} subclass.
+     *
+     * @param rs the active result set
+     * @return a fully populated animal entity matching its specific subtype
+     * @throws SQLException if a column label is invalid or a database error occurs
      */
     private Animal mapRow(ResultSet rs) throws SQLException {
 
         String type = rs.getString("type");
 
-        // Instantiate the correct subclass based on the type discriminator
         Animal animal = switch (type) {
             case "MAMMAL"  -> buildMammal(rs);
             case "BIRD"    -> buildBird(rs);
@@ -196,7 +200,6 @@ public class AnimalRepositoryImpl implements AnimalRepository {
             default        -> throw new IllegalStateException("Unknown animal type: " + type);
         };
 
-        // Set common fields shared by all subtypes
         animal.setId(rs.getInt("id"));
         animal.setName(rs.getString("name"));
         animal.setSpecies(rs.getString("species"));
@@ -206,7 +209,6 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         animal.setHydration(rs.getDouble("hydration"));
         animal.setActivityLevel(rs.getDouble("activity_level"));
 
-        // enclosure_id can be 0 (unassigned) – handled by nullable FK in DB
         int encId = rs.getInt("enclosure_id");
         if (!rs.wasNull()) {
             animal.setEnclosureId(encId);
@@ -222,6 +224,13 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return animal;
     }
 
+    /**
+     * Instantiates and populates a {@link Mammal} entity from the result set.
+     *
+     * @param rs the active result set
+     * @return the populated mammal instance
+     * @throws SQLException if column reading fails
+     */
     private Mammal buildMammal(ResultSet rs) throws SQLException {
         Mammal mammal = new Mammal();
         mammal.setHasFur(rs.getBoolean("has_fur"));
@@ -229,6 +238,13 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return mammal;
     }
 
+    /**
+     * Instantiates and populates a {@link Bird} entity from the result set.
+     *
+     * @param rs the active result set
+     * @return the populated bird instance
+     * @throws SQLException if column reading fails
+     */
     private Bird buildBird(ResultSet rs) throws SQLException {
         Bird bird = new Bird();
         double wingspan = rs.getDouble("wingspan_cm");
@@ -239,6 +255,13 @@ public class AnimalRepositoryImpl implements AnimalRepository {
         return bird;
     }
 
+    /**
+     * Instantiates and populates a {@link Reptile} entity from the result set.
+     *
+     * @param rs the active result set
+     * @return the populated reptile instance
+     * @throws SQLException if column reading fails
+     */
     private Reptile buildReptile(ResultSet rs) throws SQLException {
         Reptile reptile = new Reptile();
         reptile.setVenomous(rs.getBoolean("is_venomous"));
@@ -250,9 +273,12 @@ public class AnimalRepositoryImpl implements AnimalRepository {
     }
 
     /**
-     * Binds the 17 parameters shared by both INSERT and UPDATE statements.
-     * Subtype-specific columns are bound to null when the animal is the
-     * wrong subtype (e.g., wingspan_cm is null for a Mammal row).
+     * Binds the state of an {@link Animal} entity to the provided {@link PreparedStatement}.
+     * Nullifies subtype-specific columns that do not apply to the current entity type.
+     *
+     * @param stmt   the statement to be populated
+     * @param animal the entity containing the required state
+     * @throws SQLException if setting a parameter fails
      */
     private void setCommonParams(PreparedStatement stmt, Animal animal)
             throws SQLException {

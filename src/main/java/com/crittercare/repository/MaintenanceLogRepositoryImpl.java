@@ -9,17 +9,15 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JDBC implementation of MaintenanceLogRepository.
- *
- * Both animal_id and enclosure_id are nullable FKs in the database —
- * a log may reference only an enclosure (sanitation), only an animal
- * (health check), or both.  rs.wasNull() is used after every getInt()
- * call on these columns; Java 0 is stored back only when the DB value
- * is genuinely zero (which it never is for an auto-increment PK).
+ * Provides a JDBC-based implementation of the {@link MaintenanceLogRepository} interface.
+ * <p>
+ * This repository manages the persistence of maintenance and care logs. It handles
+ * the flexible relational mapping where a log entry may be optionally associated
+ * with an animal, an enclosure, or both, ensuring referential integrity through
+ * nullable foreign keys.
+ * </p>
  */
 public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
-
-    // ── SQL constants ────────────────────────────────────────────────────────
 
     private static final String SELECT_COLS = """
             SELECT id, animal_id, enclosure_id, timestamp,
@@ -60,21 +58,25 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
     private static final String DELETE =
             "DELETE FROM maintenance_logs WHERE id = ?";
 
-    // ── Dependencies ─────────────────────────────────────────────────────────
 
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new repository implementation.
+     *
+     * @param dbManager the database manager providing JDBC connections
+     */
     public MaintenanceLogRepositoryImpl(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    // ── Interface implementation ─────────────────────────────────────────────
-
+    /** {@inheritDoc} */
     @Override
     public List<MaintenanceLog> findAll() {
         return query(FIND_ALL);
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<MaintenanceLog> findById(int id) {
         try (PreparedStatement stmt =
@@ -91,21 +93,25 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         return Optional.empty();
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<MaintenanceLog> findByAnimalId(int animalId) {
         return queryWithInt(FIND_BY_ANIMAL, animalId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<MaintenanceLog> findByEnclosureId(int enclosureId) {
         return queryWithInt(FIND_BY_ENCLOSURE, enclosureId);
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<MaintenanceLog> findRecent(int limit) {
         return queryWithInt(FIND_RECENT, limit);
     }
 
+    /** {@inheritDoc} */
     @Override
     public MaintenanceLog save(MaintenanceLog log) {
         try (PreparedStatement stmt =
@@ -126,6 +132,7 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         return log;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void update(MaintenanceLog log) {
         try (PreparedStatement stmt =
@@ -139,6 +146,7 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void delete(int id) {
         try (PreparedStatement stmt =
@@ -150,8 +158,13 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
+    /**
+     * Maps the current row of the provided {@link ResultSet} to a new {@link MaintenanceLog} entity.
+     *
+     * @param rs the active result set
+     * @return a fully populated maintenance log instance
+     * @throws SQLException if a column label is invalid or a database error occurs
+     */
     private MaintenanceLog mapRow(ResultSet rs) throws SQLException {
         MaintenanceLog log = new MaintenanceLog();
         log.setId(rs.getInt("id"));
@@ -180,7 +193,12 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         return log;
     }
 
-    /** Runs a no-parameter SELECT and collects all rows. */
+    /**
+     * Executes a parameterless SQL SELECT statement and maps the results to a list of entities.
+     *
+     * @param sql the SQL statement to execute
+     * @return a list of mapped maintenance logs
+     */
     private List<MaintenanceLog> query(String sql) {
         List<MaintenanceLog> result = new ArrayList<>();
         try (Statement stmt = dbManager.getConnection().createStatement();
@@ -194,7 +212,13 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
         return result;
     }
 
-    /** Runs a single-integer-parameter SELECT and collects all rows. */
+    /**
+     * Executes an SQL SELECT statement with a single integer parameter and maps the results.
+     *
+     * @param sql   the parameterized SQL statement
+     * @param param the integer value to bind to the statement
+     * @return a list of mapped maintenance logs
+     */
     private List<MaintenanceLog> queryWithInt(String sql, int param) {
         List<MaintenanceLog> result = new ArrayList<>();
         try (PreparedStatement stmt =
@@ -213,8 +237,14 @@ public class MaintenanceLogRepositoryImpl implements MaintenanceLogRepository {
     }
 
     /**
-     * Binds the 8 data parameters shared by INSERT and UPDATE.
-     * Nullable FKs are explicitly set to SQL NULL when the Java value is 0.
+     * Binds the state of a {@link MaintenanceLog} entity to the provided {@link PreparedStatement}.
+     * <p>
+     * Ensures that unassigned relational identifiers are mapped to SQL NULL values.
+     * </p>
+     *
+     * @param stmt the statement to be populated
+     * @param log  the entity containing the required state
+     * @throws SQLException if setting a parameter fails
      */
     private void setParams(PreparedStatement stmt, MaintenanceLog log)
             throws SQLException {

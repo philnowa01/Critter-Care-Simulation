@@ -11,12 +11,12 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * JDBC implementation of EnclosureRepository.
- *
- * The enclosures table does not store animal IDs directly — animals hold
- * a reference to their enclosure via the enclosure_id foreign key.
- * loadAnimalIds() runs a second lightweight query to populate the
- * Enclosure.animalIds list after the main row is mapped.
+ * Provides a JDBC-based implementation of the {@link EnclosureRepository} interface.
+ * <p>
+ * This repository manages the persistence of habitat enclosures and handles the
+ * resolution of associated animal entity identifiers to maintain the relational
+ * mapping between entities.
+ * </p>
  */
 public class EnclosureRepositoryImpl implements EnclosureRepository {
 
@@ -62,16 +62,18 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
 
     private static final String DELETE = "DELETE FROM enclosures WHERE id = ?";
 
-    // ── Dependencies ─────────────────────────────────────────────────────────
-
     private final DatabaseManager dbManager;
 
+    /**
+     * Constructs a new repository implementation.
+     *
+     * @param dbManager the database manager providing JDBC connections
+     */
     public EnclosureRepositoryImpl(DatabaseManager dbManager) {
         this.dbManager = dbManager;
     }
 
-    // ── Interface implementation ─────────────────────────────────────────────
-
+    /** {@inheritDoc} */
     @Override
     public List<Enclosure> findAll() {
         List<Enclosure> enclosures = new ArrayList<>();
@@ -88,6 +90,7 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         return enclosures;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Optional<Enclosure> findById(int id) {
         try (PreparedStatement stmt =
@@ -106,6 +109,7 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         return Optional.empty();
     }
 
+    /** {@inheritDoc} */
     @Override
     public List<Enclosure> findByHabitatType(HabitatType type) {
         List<Enclosure> enclosures = new ArrayList<>();
@@ -126,6 +130,7 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         return enclosures;
     }
 
+    /** {@inheritDoc} */
     @Override
     public Enclosure save(Enclosure enclosure) {
         try (PreparedStatement stmt =
@@ -147,6 +152,7 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         return enclosure;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void update(Enclosure enclosure) {
         try (PreparedStatement stmt =
@@ -162,6 +168,7 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         }
     }
 
+    /** {@inheritDoc} */
     @Override
     public void delete(int id) {
         try (PreparedStatement stmt =
@@ -173,8 +180,13 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         }
     }
 
-    // ── Private helpers ──────────────────────────────────────────────────────
-
+    /**
+     * Maps the current row of the provided {@link ResultSet} to a new {@link Enclosure} entity.
+     *
+     * @param rs the active result set
+     * @return a fully populated enclosure instance
+     * @throws SQLException if a column label is invalid or a database error occurs
+     */
     private Enclosure mapRow(ResultSet rs) throws SQLException {
         Enclosure enc = new Enclosure();
         enc.setId(rs.getInt("id"));
@@ -193,9 +205,9 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
     }
 
     /**
-     * Queries the animals table to find which animal IDs belong to this
-     * enclosure, then populates enclosure.animalIds.
-     * Runs one extra query per enclosure — acceptable for small datasets.
+     * Resolves and populates the associated animal identifiers for the given enclosure.
+     *
+     * @param enclosure the enclosure entity to populate
      */
     private void loadAnimalIds(Enclosure enclosure) {
         List<Integer> ids = new ArrayList<>();
@@ -215,7 +227,13 @@ public class EnclosureRepositoryImpl implements EnclosureRepository {
         enclosure.setAnimalIds(ids);
     }
 
-    /** Binds the 6 parameters shared by INSERT (1–6) and UPDATE (1–6). */
+    /**
+     * Binds the state of an {@link Enclosure} entity to the provided {@link PreparedStatement}.
+     *
+     * @param stmt the statement to be populated
+     * @param enc  the entity containing the required state
+     * @throws SQLException if setting a parameter fails
+     */
     private void setParams(PreparedStatement stmt, Enclosure enc)
             throws SQLException {
 

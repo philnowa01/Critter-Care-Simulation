@@ -1,37 +1,53 @@
 package com.crittercare.model;
 
 /**
- * Warm-blooded animal with fur.
- *
- * Mammals have a higher hunger and hydration decay rate than reptiles
- * because warm-blooded animals burn more calories to maintain body temperature.
- *
- * Subtype-specific DB columns: has_fur, fur_color
+ * Represents a mammalian entity within the CritterCare simulation.
+ * <p>
+ * Mammals are endothermic (warm-blooded) animals. Due to the continuous energy
+ * expenditure required to maintain internal body temperature, they exhibit higher
+ * hunger and hydration decay rates compared to ectothermic species (e.g., reptiles).
+ * </p>
  */
 public class Mammal extends Animal {
 
     private boolean hasFur;
     private String  furColor;
 
-    // ── Constructors ─────────────────────────────────────────────────────────
-
+    /**
+     * Default constructor required for framework instantiation.
+     * Initializes the mammal with standard traits (assumes the presence of fur).
+     */
     public Mammal() {
         super();
         this.hasFur = true;
     }
 
+    /**
+     * Constructs a new mammal with core identity attributes.
+     *
+     * @param name    the given name of the mammal
+     * @param species the species designation
+     * @param age     the age in years
+     */
     public Mammal(String name, String species, int age) {
         super(name, species, age);
         this.hasFur = true;
     }
 
+    /**
+     * Constructs a fully initialized mammal with specific physical traits.
+     *
+     * @param name     the given name of the mammal
+     * @param species  the species designation
+     * @param age      the age in years
+     * @param hasFur   indicates whether the mammal possesses fur
+     * @param furColor the descriptive color of the fur
+     */
     public Mammal(String name, String species, int age, boolean hasFur, String furColor) {
         super(name, species, age);
         this.hasFur   = hasFur;
         this.furColor = furColor;
     }
-
-    // ── Template Method hooks ────────────────────────────────────────────────
 
     @Override
     protected double getHungerRate() {
@@ -49,13 +65,17 @@ public class Mammal extends Animal {
         return 2.0;
     }
 
-    // ── Abstract method implementations ──────────────────────────────────────
-
     @Override
     public String getType() {
         return "MAMMAL";
     }
 
+    /**
+     * Generates a sound specific to the mammal's species.
+     * Uses pattern matching to return the appropriate vocalization.
+     *
+     * @return a short sound description
+     */
     @Override
     public String makeSound() {
         return switch (getSpecies()) {
@@ -67,7 +87,7 @@ public class Mammal extends Animal {
         };
     }
 
-    // ── Getters & Setters ────────────────────────────────────────────────────
+    // Getters and Setters
 
     public boolean isHasFur()              { return hasFur; }
     public void setHasFur(boolean hasFur)  { this.hasFur = hasFur; }
